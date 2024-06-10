@@ -1,0 +1,5 @@
+{
+	"biome.rename": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"biome_lsp.trace.server": "messages"
+}
