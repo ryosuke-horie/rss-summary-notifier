@@ -8,4 +8,4 @@ import { Aspects } from "aws-cdk-lib";
 const app = new cdk.App();
 // Add the cdk-nag AwsSolutions Pack with extra verbose logging enabled.
 Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
-new RssSummaryNotifierStack(app, "WhatsNewSummaryNotifierStack", {});
+new RssSummaryNotifierStack(app, "RssSummaryNotifierStack", {});

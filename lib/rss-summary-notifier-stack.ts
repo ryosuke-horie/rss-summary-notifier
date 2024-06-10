@@ -34,16 +34,19 @@ export class RssSummaryNotifierStack extends Stack {
 		const region = Stack.of(this).region;
 		const accountId = Stack.of(this).account;
 
+		// Bedrockのモデルとリージョンを設定
 		const modelRegion = this.node.tryGetContext("modelRegion");
 		const modelId = this.node.tryGetContext("modelId");
 
 		const notifiers: [] = this.node.tryGetContext("notifiers");
 		const summarizers: [] = this.node.tryGetContext("summarizers");
 
-		// Role for Lambda Function to post new entries written to DynamoDB to Slack or Microsoft Teams
+		// Lambda関数がDynamoDBに書き込まれた新しいエントリをSlackに投稿するためのロール
 		const notifyNewEntryRole = new Role(this, "NotifyNewEntryRole", {
 			assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
 		});
+		// インラインポリシーにより、Lambda関数がログを書き込むことを許可
+		// また、Bedrockのモデルを呼び出すための権限も追加
 		notifyNewEntryRole.attachInlinePolicy(
 			new Policy(this, "AllowNotifyNewEntryLogging", {
 				statements: [
@@ -65,10 +68,12 @@ export class RssSummaryNotifierStack extends Stack {
 			}),
 		);
 
-		// Role for Lambda function to fetch RSS and write to DynamoDB
+		// RSSを取得し、DynamoDBに書き込むLambda関数用のロール
 		const newsCrawlerRole = new Role(this, "NewsCrawlerRole", {
 			assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
 		});
+		// インラインポリシーにより、Lambda関数がログを書き込むことを許可
+		// また、DynamoDBに書き込む権限を追加
 		newsCrawlerRole.attachInlinePolicy(
 			new Policy(this, "AllowNewsCrawlerLogging", {
 				statements: [
@@ -85,15 +90,15 @@ export class RssSummaryNotifierStack extends Stack {
 			}),
 		);
 
-		// DynamoDB to store RSS data
-		const rssHistoryTable = new Table(this, "WhatsNewRSSHistory", {
+		// RSSデータを格納するDynamoDB
+		const rssHistoryTable = new Table(this, "RSSHistory", {
 			partitionKey: { name: "url", type: AttributeType.STRING },
 			sortKey: { name: "notifier_name", type: AttributeType.STRING },
 			billingMode: BillingMode.PAY_PER_REQUEST,
 			stream: StreamViewType.NEW_IMAGE,
 		});
 
-		// Lambda Function to post new entries written to DynamoDB to Slack or Microsoft Teams
+		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
 			runtime: Runtime.PYTHON_3_11,
 			entry: path.join(__dirname, "../lambda/notify-to-app"),
@@ -102,7 +107,6 @@ export class RssSummaryNotifierStack extends Stack {
 			timeout: Duration.seconds(180),
 			logRetention: RetentionDays.TWO_WEEKS,
 			role: notifyNewEntryRole,
-			reservedConcurrentExecutions: 1,
 			environment: {
 				MODEL_ID: modelId,
 				MODEL_REGION: modelRegion,
@@ -111,6 +115,7 @@ export class RssSummaryNotifierStack extends Stack {
 			},
 		});
 
+		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数をDynamoDBのストリームに接続
 		notifyNewEntry.addEventSource(
 			new DynamoEventSource(rssHistoryTable, {
 				startingPosition: StartingPosition.LATEST,
@@ -118,10 +123,10 @@ export class RssSummaryNotifierStack extends Stack {
 			}),
 		);
 
-		// Allow writing to DynamoDB
+		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数にDynamoDBへの書き込み権限を付与
 		rssHistoryTable.grantWriteData(newsCrawlerRole);
 
-		// Lambda Function to fetch RSS and write to DynamoDB
+		// RSSを取得し、DynamoDBに書き込むLambda関数
 		const newsCrawler = new PythonFunction(this, "newsCrawler", {
 			runtime: Runtime.PYTHON_3_11,
 			entry: path.join(__dirname, "../lambda/rss-crawler"),
@@ -138,7 +143,8 @@ export class RssSummaryNotifierStack extends Stack {
 
 		for (const notifierName in notifiers) {
 			const notifier = notifiers[notifierName];
-			// const cron is a cronOption defined in a notifier. if it is not defined, set default schedule (every hour)
+			// 通知のスケジュールを取得
+			// 実行するのは → 毎日の0時
 			const schedule: CronOptions = notifier["schedule"] || {
 				minute: "0",
 				hour: "*",
@@ -146,6 +152,7 @@ export class RssSummaryNotifierStack extends Stack {
 				month: "*",
 				year: "*",
 			};
+			// 通知先のURLを取得
 			const webhookUrlParameterName = notifier["webhookUrlParameterName"];
 			const webhookUrlParameterStore =
 				StringParameter.fromSecureStringParameterAttributes(
@@ -156,11 +163,10 @@ export class RssSummaryNotifierStack extends Stack {
 					},
 				);
 
-			// add permission to Lambda Role
+			// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数にパラメータストアから読み取る権限を付与
 			webhookUrlParameterStore.grantRead(notifyNewEntryRole);
 
-			// Scheduled Rule for RSS Crawler
-			// Run every hour, 24 hours a day
+			// 通知のスケジュールを設定
 			// see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
 			const rule = new Rule(this, `CheckUpdate-${notifierName}`, {
 				schedule: Schedule.cron(schedule),

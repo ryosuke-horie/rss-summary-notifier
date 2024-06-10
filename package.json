@@ -1,8 +1,8 @@
 {
-  "name": "whats-new-summary-notifier",
+  "name": "rss-summary-notifier",
   "version": "0.1.0",
   "bin": {
-    "whats-new-summary-notifier": "bin/whats-new-summary-notifier.js"
+    "rss-summary-notifier": "bin/rss-summary-notifier.js"
   },
   "scripts": {
     "build": "tsc",
