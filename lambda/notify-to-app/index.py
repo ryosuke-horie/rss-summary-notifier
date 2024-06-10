@@ -233,7 +233,7 @@ def push_notification(item_list):
         item["summary"] = summary
         item["detail"] = detail
         msg = {
-            "text": f"{item['rss_title']} {item['summary']}"
+            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
         }
 
         encoded_msg = json.dumps(msg).encode("utf-8")
