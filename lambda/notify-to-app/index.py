@@ -1,6 +1,3 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
-
 import boto3
 import json
 import os
@@ -235,11 +232,9 @@ def push_notification(item_list):
         # Add the summary text to notified message
         item["summary"] = summary
         item["detail"] = detail
-        if destination == "teams":
-            item["detail"] = item["detail"].replace("。\n", "。\r")
-            msg = create_teams_message(item)
-        else:  # Slack
-            msg = item
+        msg = {
+            "text": f"{item['rss_title']} {item['summary']}"
+        }
 
         encoded_msg = json.dumps(msg).encode("utf-8")
         print("push_msg:{}".format(item))
@@ -275,112 +270,6 @@ def get_new_entries(blog_entries):
         else:  # Do not notify for REMOVE or UPDATE events
             print("skip REMOVE or UPDATE event")
     return res_list
-
-
-def create_teams_message(item):
-    message = {
-        "type": "message",
-        "attachments": [
-            {
-                "contentType": "application/vnd.microsoft.card.adaptive",
-                "content": {
-                    "type": "AdaptiveCard",
-                    "version": "1.3",
-                    "body": [
-                        {
-                            "type": "ColumnSet",
-                            "columns": [
-                                {
-                                    "type": "Column",
-                                    "width": "auto",
-                                    "items": [
-                                        {
-                                            "type": "Container",
-                                            "id": "collapsedItems",
-                                            "items": [
-                                                {
-                                                    "type": "TextBlock",
-                                                    "text": f'**{item["rss_title"]}**',
-                                                },
-                                                {
-                                                    "type": "TextBlock",
-                                                    "wrap": True,
-                                                    "text": f'{item["summary"]}',
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            "type": "Container",
-                                            "id": "expandedItems",
-                                            "isVisible": False,
-                                            "items": [
-                                                {
-                                                    "type": "TextBlock",
-                                                    "wrap": True,
-                                                    "text": f'{item["detail"]}',
-                                                }
-                                            ],
-                                        },
-                                    ],
-                                }
-                            ],
-                        },
-                        {
-                            "type": "Container",
-                            "items": [
-                                {
-                                    "type": "ColumnSet",
-                                    "columns": [
-                                        {
-                                            "type": "Column",
-                                            "width": "stretch",
-                                            "items": [
-                                                {
-                                                    "type": "TextBlock",
-                                                    "text": "see less",
-                                                    "id": "collapse",
-                                                    "isVisible": False,
-                                                    "wrap": True,
-                                                    "color": "Accent",
-                                                },
-                                                {
-                                                    "type": "TextBlock",
-                                                    "text": "see more",
-                                                    "id": "expand",
-                                                    "wrap": True,
-                                                    "color": "Accent",
-                                                },
-                                            ],
-                                        }
-                                    ],
-                                    "selectAction": {
-                                        "type": "Action.ToggleVisibility",
-                                        "targetElements": [
-                                            "collapse",
-                                            "expand",
-                                            "expandedItems",
-                                        ],
-                                    },
-                                }
-                            ],
-                        },
-                    ],
-                    "actions": [
-                        {
-                            "type": "Action.OpenUrl",
-                            "title": "Open Link",
-                            "wrap": True,
-                            "url": f'{item["rss_link"]}',
-                        }
-                    ],
-                    "msteams": {"width": "Full"},
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                },
-            }
-        ],
-    }
-
-    return message
 
 
 def handler(event, context):
