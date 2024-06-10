@@ -26,6 +26,28 @@ Amazon Samplesの[whats-new-summary-notifier](https://github.com/aws-samples/wha
 
 ![architecture](doc/architecture.png)
 
+## コードアーキテクチャ
+
+Lambda部分の構想案。Honoを活用する。
+
+```text
+rss-summry-notifer/
+├── lambda/
+│   ├── aws/
+│   │   ├── dynamoDB.ts
+│   │   ├── bedrock.ts
+│   │   ├── ssm.ts
+│   ├── handlers/
+│   │   ├── fetchBlogs.ts
+│   │   ├── notifyBlogs.ts
+│   ├── utils/
+│   │   ├── rssParser.ts
+│   ├── index.ts
+├── .env
+├── package.json
+├── tsconfig.json
+```
+
 ## 前提条件
 
 - Unix コマンドを実行できる環境 (Mac、Linux、...)
