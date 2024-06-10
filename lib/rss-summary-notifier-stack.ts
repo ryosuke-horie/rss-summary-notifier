@@ -27,7 +27,7 @@ import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import * as path from "node:path";
 
-export class WhatsNewSummaryNotifierStack extends Stack {
+export class RssSummaryNotifierStack extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
