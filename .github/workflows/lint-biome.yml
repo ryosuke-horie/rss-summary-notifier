@@ -1,0 +1,24 @@
+name: lint-biome
+
+on:
+  push:
+    branches:
+        - main
+
+  pull_request:
+jobs:
+  lint-biome:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Setup dependencies
+        run: bun install
+          
+      - name: CDK Diff Check
+        if: contains(github.event_name, 'pull_request')
+        run: bun run biome
