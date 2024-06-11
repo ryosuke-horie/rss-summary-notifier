@@ -13,6 +13,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
+    "cdk:diff": "cdk diff || true",
+    "cdk:deploy": "cdk deploy --require-approval never",
     "biome": "bunx @biomejs/biome check"
   },
   "devDependencies": {
