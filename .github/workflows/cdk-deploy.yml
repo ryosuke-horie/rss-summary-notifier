@@ -1,0 +1,43 @@
+name: cdk
+
+on:
+  push:
+    branches:
+        - main
+
+  pull_request:
+jobs:
+  aws_cdk:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Setup dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+    #   - name: Unit tests
+    #     if: contains(github.event_name, 'pull_request')
+    #     run: npm run test:app
+          
+      - name: CDK Diff Check
+        if: contains(github.event_name, 'pull_request')
+        run: bun run cdk:diff
+        env:
+          AWS_DEFAULT_REGION: 'us-east-1'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: CDK Deploy
+        if: contains(github.event_name, 'push')
+        run: bun run cdk:deploy
+        env:
+          AWS_DEFAULT_REGION: 'us-east-1'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

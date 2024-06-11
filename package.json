@@ -1,10 +1,6 @@
 {
   "name": "rss-summary-notifier",
   "version": "0.1.0",
-  "workspaces": [
-    "hono/*",
-    "./"
-  ],
   "bin": {
     "rss-summary-notifier": "bin/rss-summary-notifier.js"
   },
@@ -13,6 +9,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
+    "cdk:diff": "cdk diff || true",
+    "cdk:deploy": "cdk deploy --require-approval never",
     "biome": "bunx @biomejs/biome check"
   },
   "devDependencies": {
