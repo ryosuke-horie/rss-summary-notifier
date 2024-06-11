@@ -1,10 +1,6 @@
 {
   "name": "rss-summary-notifier",
   "version": "0.1.0",
-  "workspaces": [
-    "hono/*",
-    "./"
-  ],
   "bin": {
     "rss-summary-notifier": "bin/rss-summary-notifier.js"
   },
