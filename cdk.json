@@ -35,6 +35,7 @@
         "rssUrl": {
           "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/",
           "yappli": "https://tech.yappli.io/rss",
+          "base": "https://devblog.thebase.in/rss",
           "iret": "https://iret.media/feed"
         }
       }
