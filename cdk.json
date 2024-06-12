@@ -34,7 +34,6 @@
         "webhookUrlParameterName": "/WhatsNew/URL",
         "rssUrl": {
           "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/",
-          "Zenn": "https://zenn.dev/feed",
           "Qiita": "https://qiita.com/popular-items/feed"
         }
       }
