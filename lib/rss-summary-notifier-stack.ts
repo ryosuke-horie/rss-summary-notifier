@@ -115,6 +115,7 @@ export class RssSummaryNotifierStack extends Stack {
 				MODEL_REGION: modelRegion,
 				NOTIFIERS: JSON.stringify(notifiers),
 				SUMMARIZERS: JSON.stringify(summarizers),
+				DDB_TABLE_NAME: rssHistoryTable.tableName,
 			},
 		});
 
@@ -149,7 +150,7 @@ export class RssSummaryNotifierStack extends Stack {
 			// 通知のスケジュールを取得
 			// 実行するのは → 毎日の0時
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "0",
+				minute: "20",
 				hour: "*",
 				day: "*",
 				month: "*",

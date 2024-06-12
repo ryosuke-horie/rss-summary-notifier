@@ -17,6 +17,10 @@ MODEL_REGION = os.environ["MODEL_REGION"]
 NOTIFIERS = json.loads(os.environ["NOTIFIERS"])
 SUMMARIZERS = json.loads(os.environ["SUMMARIZERS"])
 
+DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
+dynamo = boto3.resource("dynamodb")
+table = dynamo.Table(DDB_TABLE_NAME)
+
 ssm = boto3.client("ssm")
 
 
@@ -257,6 +261,7 @@ def update_item_in_dynamodb(item):
     Args:
         item (dict): The item to be updated
     """
+    
     try:
         table.update_item(
             Key={
