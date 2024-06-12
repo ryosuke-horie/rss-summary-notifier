@@ -204,9 +204,10 @@ Follow the instruction.
 
     return summary, detail
 
-
+# Bedrockで要約し、DBに保存
+# 通知を送信
 def push_notification(item_list):
-    """Notify the arrival of articles
+    """Notify the arrival of articles and update DynamoDB with summary details
 
     Args:
         item_list (list): List of articles to be notified
@@ -246,6 +247,32 @@ def push_notification(item_list):
             print(res.read())
         time.sleep(0.5)
 
+        # Update DynamoDB with the summary and detail
+        update_item_in_dynamodb(item)
+
+# Bedrockによる要約をDynamoDBに保存
+def update_item_in_dynamodb(item):
+    """Update the DynamoDB item with the summary and detail
+
+    Args:
+        item (dict): The item to be updated
+    """
+    try:
+        table.update_item(
+            Key={
+                "url": item["rss_link"],
+                "notifier_name": item["rss_notifier_name"]
+            },
+            UpdateExpression="SET summary = :summary, detail = :detail",
+            ExpressionAttributeValues={
+                ":summary": item["summary"],
+                ":detail": item["detail"]
+            }
+        )
+        print(f"Updated DynamoDB item with summary and detail for {item['rss_link']}")
+    except Exception as e:
+        print(f"Error updating DynamoDB item: {e}")
+        print(traceback.print_exc())
 
 def get_new_entries(blog_entries):
     """Determine if there are new blog entries to notify on Slack by checking the eventName
