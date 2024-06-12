@@ -34,7 +34,7 @@
         "webhookUrlParameterName": "/WhatsNew/URL",
         "rssUrl": {
           "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/",
-          "Qiita": "https://qiita.com/popular-items/feed"
+          "iret": "https://iret.media/feed"
         }
       }
     },
