@@ -98,6 +98,9 @@ export class RssSummaryNotifierStack extends Stack {
 			stream: StreamViewType.NEW_IMAGE,
 		});
 
+		// DynamoDBに書き込む権限を付与
+		rssHistoryTable.grantWriteData(notifyNewEntryRole);
+
 		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
 			runtime: Runtime.PYTHON_3_11,
