@@ -29,11 +29,25 @@ def get_blog_content(url):
                 html = response.read()
                 if response.getcode() == 200:
                     soup = BeautifulSoup(html, "html.parser")
+                    
+                    # Try to find main content in <main> tag
                     main = soup.find("main")
                     if main:
-                        return main.text
-                    else:
-                        return None
+                        return main.get_text()
+                    
+                    # If <main> tag not found, try to find <article> tag
+                    article = soup.find("article")
+                    if article:
+                        return article.get_text()
+                    
+                    # If <article> tag not found, try to find other possible tags
+                    # You can add more tags or specific classes/IDs as needed
+                    div = soup.find("div", {"class": "content"})
+                    if div:
+                        return div.get_text()
+
+                    # As a fallback, return the text of the entire body
+                    return soup.body.get_text()
         else:
             print(f"Error accessing {url}, status code {response.getcode()}")
             return None
