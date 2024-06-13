@@ -15,14 +15,12 @@ DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(DDB_TABLE_NAME)
 
-
+"""
+最近の投稿か判定する
+Args:
+    pubdate (str): The publication date and time
+"""
 def recently_published(pubdate):
-    """Check if the publication date is recent
-
-    Args:
-        pubdate (str): The publication date and time
-    """
-
     elapsed_time = datetime.datetime.now() - str2datetime(pubdate)
     print(elapsed_time)
     if elapsed_time.days > 7:
@@ -31,25 +29,23 @@ def recently_published(pubdate):
     return True
 
 
+"""
+Convert the date format from the blog text to datetime
+Args:
+    time_str (str): The date and time string, e.g., "Tue, 20 Sep 2022 16:05:47 +0000"
+"""
 def str2datetime(time_str):
-    """Convert the date format from the blog text to datetime
-
-    Args:
-        time_str (str): The date and time string, e.g., "Tue, 20 Sep 2022 16:05:47 +0000"
-    """
-
     return dateutil.parser.parse(time_str, ignoretz=True)
 
-
+"""
+DynamoDBにブログ情報を書き込む
+Args:
+    link (str): The URL of the blog post
+    title (str): The title of the blog post
+    category (str): The category of the blog post
+    pubtime (str): The publication date of the blog post
+"""
 def write_to_table(link, title, category, pubtime, notifier_name):
-    """Write a blog post to DynamoDB
-
-    Args:
-        link (str): The URL of the blog post
-        title (str): The title of the blog post
-        category (str): The category of the blog post
-        pubtime (str): The publication date of the blog post
-    """
     try:
         item = {
             "url": link,
