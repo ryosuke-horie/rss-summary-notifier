@@ -98,8 +98,9 @@ export class RssSummaryNotifierStack extends Stack {
 			stream: StreamViewType.NEW_IMAGE,
 		});
 
-		// DynamoDBに書き込む権限を付与
-		rssHistoryTable.grantWriteData(notifyNewEntryRole);
+		// DynamoDBをアップデートするため権限を付与
+		rssHistoryTable.grantReadWriteData(notifyNewEntryRole);
+		// rssHistoryTable.grantWriteData(notifyNewEntryRole);
 
 		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
@@ -150,7 +151,7 @@ export class RssSummaryNotifierStack extends Stack {
 			// 通知のスケジュールを取得
 			// 実行するのは → 毎日の0時
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "20",
+				minute: "32",
 				hour: "*",
 				day: "*",
 				month: "*",
