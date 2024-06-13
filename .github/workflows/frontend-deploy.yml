@@ -21,7 +21,6 @@ permissions:
 jobs:
   frontend_deploy:
     runs-on: ubuntu-22.04
-    working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,17 +30,21 @@ jobs:
 
       - name: Setup dependencies
         run: bun install
+        working-directory: frontend
 
       - name: Build
         run: bun run build
+        working-directory: frontend
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.IAM_ROLE_ARN}}
+        working-directory: frontend
 
       - name: Upload files to S3 and Clear CF cache
+        working-directory: frontend
         run: |
           aws s3 sync --exact-timestamps --delete ./out s3://${{ env.AWS_BUCKET_NAME }}/
           aws cloudfront create-invalidation --distribution-id ${{ env.CF_DISTRIBUTION_ID }} --paths "/*"
