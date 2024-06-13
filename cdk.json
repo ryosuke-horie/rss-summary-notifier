@@ -33,7 +33,7 @@
         "summarizerName": "AwsSolutionsArchitectJapanese",
         "webhookUrlParameterName": "/WhatsNew/URL",
         "rssUrl": {
-          "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/"
+          "techBlog": "https://yamadashy.github.io/tech-blog-rss-feed/feeds/rss.xml"
         }
       }
     },
