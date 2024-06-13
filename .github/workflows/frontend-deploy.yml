@@ -44,5 +44,5 @@ jobs:
 
       - name: Upload files to S3 and Clear CF cache
         run: |
-          aws s3 sync --exact-timestamps --delete ./out s3://${{ env.AWS_BUCKET_NAME }}/
+          aws s3 sync --exact-timestamps --delete ./frontend/out s3://${{ env.AWS_BUCKET_NAME }}/
           aws cloudfront create-invalidation --distribution-id ${{ env.CF_DISTRIBUTION_ID }} --paths "/*"
