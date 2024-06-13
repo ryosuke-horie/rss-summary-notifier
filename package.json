@@ -10,7 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "cdk:diff": "cdk diff || true",
-    "cdk:deploy": "cdk deploy --require-approval never",
+    "cdk:deploy": "cdk deploy --require-approval never --all",
     "biome": "bunx @biomejs/biome check"
   },
   "devDependencies": {
