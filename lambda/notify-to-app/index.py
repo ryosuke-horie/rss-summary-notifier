@@ -246,7 +246,6 @@ def push_notification(item_list):
 def update_item_in_dynamodb(item):
     try:
         link = item['rss_link']
-        print(DDB_TABLE_NAME)
         
         response = table.get_item(
             Key={
@@ -264,8 +263,8 @@ def update_item_in_dynamodb(item):
                     ':c': item['rss_category'],
                     ':p': item['rss_time'],
                     ':n': item['rss_notifier_name'],
-                    ':s': item.get('summary', ''),
-                    ':d': item.get('detail', '')
+                    ':s': item['summary']
+                    ':d': item['detail']
                 },
                 ReturnValues="UPDATED_NEW"
             )
