@@ -121,21 +121,20 @@ def get_bedrock_client(
 
     return bedrock_client
 
-
+"""
+ブログコンテンツを要約する
+Args:
+    blog_body (str): The content of the blog post to be summarized
+    language (str): The language for the summary
+    persona (str): The persona to use for the summary
+Returns:
+    str: The summarized text
+"""
 def summarize_blog(
     blog_body,
     language,
     persona,
 ):
-    """Summarize the content of a blog post
-    Args:
-        blog_body (str): The content of the blog post to be summarized
-        language (str): The language for the summary
-        persona (str): The persona to use for the summary
-
-    Returns:
-        str: The summarized text
-    """
 
     boto3_bedrock = get_bedrock_client(
         assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None),
@@ -210,15 +209,9 @@ Follow the instruction.
 
 # Bedrockで要約し、DBに保存
 # 通知を送信
+# item_list (list): List of articles to be notified
 def push_notification(item_list):
-    """Notify the arrival of articles and update DynamoDB with summary details
-
-    Args:
-        item_list (list): List of articles to be notified
-    """
-
     for item in item_list:
-        
         notifier = NOTIFIERS[item["rss_notifier_name"]]
         webhook_url_parameter_name = notifier["webhookUrlParameterName"]
         destination = notifier["destination"]
@@ -234,13 +227,14 @@ def push_notification(item_list):
         summarizer = SUMMARIZERS[notifier["summarizerName"]]
         summary, detail = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
 
-        # Add the summary text to notified message
+        # 要約と詳細をitem変数に追加
         item["summary"] = summary
         item["detail"] = detail
+
+        # 通知用のメッセージを作成し、Slackに送信
         msg = {
             "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
         }
-
         encoded_msg = json.dumps(msg).encode("utf-8")
         print("push_msg:{}".format(item))
         headers = {
@@ -251,17 +245,11 @@ def push_notification(item_list):
             print(res.read())
         time.sleep(0.5)
 
-        # Update DynamoDB with the summary and detail
+        # DynamoDBに要約と詳細を保存
         update_item_in_dynamodb(item)
 
 # Bedrockによる要約をDynamoDBに保存
 def update_item_in_dynamodb(item):
-    """Update the DynamoDB item with the summary and detail
-
-    Args:
-        item (dict): The item to be updated
-    """
-    
     try:
         table.update_item(
             Key={
