@@ -96,6 +96,7 @@ export class RssSummaryNotifierStack extends Stack {
 			sortKey: { name: "notifier_name", type: AttributeType.STRING },
 			billingMode: BillingMode.PAY_PER_REQUEST,
 			stream: StreamViewType.NEW_IMAGE,
+			timeToLiveAttribute: "expireAt", // TTL属性を指定
 		});
 
 		// DynamoDBをアップデートするため権限を付与
