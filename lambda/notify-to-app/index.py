@@ -3,13 +3,12 @@ import json
 import os
 import time
 import traceback
-
 import urllib.request
-
 from typing import Optional
 from botocore.config import Config
 from bs4 import BeautifulSoup
 from botocore.exceptions import ClientError
+from datetime import datetime, timezone
 import re
 
 MODEL_ID = os.environ["MODEL_ID"]
@@ -22,7 +21,6 @@ dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(DDB_TABLE_NAME)
 
 ssm = boto3.client("ssm")
-
 
 def get_blog_content(url):
     """Retrieve the content of a blog post
@@ -42,20 +40,16 @@ def get_blog_content(url):
                 if response.getcode() == 200:
                     soup = BeautifulSoup(html, "html.parser")
                     main = soup.find("main")
-
                     if main:
                         return main.text
                     else:
                         return None
-
         else:
             print(f"Error accessing {url}, status code {response.getcode()}")
             return None
-
     except urllib.error.URLError as e:
         print(f"Error accessing {url}: {e.reason}")
         return None
-
 
 def get_bedrock_client(
     assumed_role: Optional[str] = None,
@@ -251,34 +245,40 @@ def push_notification(item_list):
 # Bedrockによる要約をDynamoDBに保存
 def update_item_in_dynamodb(item):
     try:
-        link = item['url']
+        link = item['rss_link']
         
-        # Check if item with the given link already exists
         response = table.get_item(
             Key={
                 'url': link
             }
         )
         if 'Item' in response:
-            # Item exists, update it
             table.update_item(
                 Key={
                     'url': link
                 },
                 UpdateExpression="SET title=:t, category=:c, pubtime=:p, notifier_name=:n, summary=:s, detail=:d",
                 ExpressionAttributeValues={
-                    ':t': item['title'],
-                    ':c': item['category'],
-                    ':p': item['pubtime'],
-                    ':n': item['notifier_name'],
-                    ':s': item.get('summary', ''),  # Using .get() to handle cases where summary/detail might not be provided
+                    ':t': item['rss_title'],
+                    ':c': item['rss_category'],
+                    ':p': item['rss_time'],
+                    ':n': item['rss_notifier_name'],
+                    ':s': item.get('summary', ''),
                     ':d': item.get('detail', '')
                 },
                 ReturnValues="UPDATED_NEW"
             )
             print(f"Item updated: {link}")
         else:
-            # Item does not exist, put new item
+            item = {
+                "url": link,
+                "title": item['rss_title'],
+                "category": item['rss_category'],
+                "pubtime": item['rss_time'],
+                "notifier_name": item['rss_notifier_name'],
+                "summary": item.get('summary', ''),
+                "detail": item.get('detail', ''),
+            }
             table.put_item(Item=item)
             print(f"New item put: {link}")
 
@@ -286,15 +286,8 @@ def update_item_in_dynamodb(item):
         print(f"Error: {e}")
 
 def get_new_entries(blog_entries):
-    """Determine if there are new blog entries to notify on Slack by checking the eventName
-
-    Args:
-        blog_entries (list): List of blog entries registered in DynamoDB
-    """
-
     res_list = []
     for entry in blog_entries:
-        print(entry)
         if entry["eventName"] == "INSERT":
             new_data = {
                 "rss_category": entry["dynamodb"]["NewImage"]["category"]["S"],
@@ -303,12 +296,10 @@ def get_new_entries(blog_entries):
                 "rss_link": entry["dynamodb"]["NewImage"]["url"]["S"],
                 "rss_notifier_name": entry["dynamodb"]["NewImage"]["notifier_name"]["S"],
             }
-            print(new_data)
             res_list.append(new_data)
-        else:  # Do not notify for REMOVE or UPDATE events
+        else:
             print("skip REMOVE or UPDATE event")
     return res_list
-
 
 def handler(event, context):
     """Notify about blog entries registered in DynamoDB
