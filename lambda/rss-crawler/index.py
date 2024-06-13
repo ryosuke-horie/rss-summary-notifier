@@ -23,7 +23,7 @@ Args:
 def recently_published(pubdate):
     elapsed_time = datetime.datetime.now() - str2datetime(pubdate)
     print(elapsed_time)
-    if elapsed_time.days > 7:
+    if elapsed_time.days >= 1:
         return False
 
     return True
@@ -47,12 +47,16 @@ Args:
 """
 def write_to_table(link, title, category, pubtime, notifier_name):
     try:
+        current_time = datetime.datetime.now()
+        ttl_time = int((current_time + datetime.timedelta(hours=24)).timestamp())  # 24時間後のタイムスタンプ
+
         item = {
             "url": link,
             "notifier_name": notifier_name,
             "title": title,
             "category": category,
             "pubtime": pubtime,
+            "expireAt": ttl_time  # TTL用のカラム
         }
         print(item)
         table.put_item(Item=item)
