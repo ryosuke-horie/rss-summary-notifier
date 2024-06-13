@@ -1,0 +1,47 @@
+name: frontend-deploy
+
+on:
+  push:
+    branches:
+        - main
+    paths:
+        - "frontend/**"
+
+env:
+  AWS_REGION: "us-east-1"
+  IAM_ROLE_ARN: ${{ secrets.IAM_ROLE_ARN }}
+  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+  CF_DISTRIBUTION_ID: ${{ secrets.CF_DISTRIBUTION_ID }}
+
+permissions:
+  id-token: write
+  contents: read
+
+  pull_request:
+jobs:
+  frontend_deploy:
+    runs-on: ubuntu-22.04
+    working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Setup dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.IAM_ROLE_ARN}}
+
+      - name: Upload files to S3 and Clear CF cache
+        run: |
+          aws s3 sync --exact-timestamps --delete ./out s3://${{ env.AWS_BUCKET_NAME }}/
+          aws cloudfront create-invalidation --distribution-id ${{ env.CF_DISTRIBUTION_ID }} --paths "/*"
