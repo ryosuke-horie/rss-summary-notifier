@@ -23,18 +23,8 @@ table = dynamo.Table(DDB_TABLE_NAME)
 ssm = boto3.client("ssm")
 
 def get_blog_content(url):
-    """Retrieve the content of a blog post
-
-    Args:
-        url (str): The URL of the blog post
-
-    Returns:
-        str: The content of the blog post, or None if it cannot be retrieved.
-    """
-
     try:
         if url.lower().startswith(("http://", "https://")):
-            # Use the `with` statement to ensure the response is properly closed
             with urllib.request.urlopen(url) as response:
                 html = response.read()
                 if response.getcode() == 200:
@@ -51,89 +41,36 @@ def get_blog_content(url):
         print(f"Error accessing {url}: {e.reason}")
         return None
 
-def get_bedrock_client(
-    assumed_role: Optional[str] = None,
-    region: Optional[str] = None,
-    runtime: Optional[bool] = True,
-):
-    """Create a boto3 client for Amazon Bedrock, with optional configuration overrides
-
-    Args:
-        assumed_role (Optional[str]): Optional ARN of an AWS IAM role to assume for calling the Bedrock service. If not
-            specified, the current active credentials will be used.
-        region (Optional[str]): Optional name of the AWS Region in which the service should be called (e.g. "us-east-1").
-            If not specified, AWS_REGION or AWS_DEFAULT_REGION environment variable will be used.
-        runtime (Optional[bool]): Optional choice of getting different client to perform operations with the Amazon Bedrock service.
-    """
-
+def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str] = None, runtime: Optional[bool] = True):
     if region is None:
-        target_region = os.environ.get(
-            "AWS_REGION", os.environ.get("AWS_DEFAULT_REGION")
-        )
+        target_region = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
     else:
         target_region = region
 
-    print(f"Create new client\n  Using region: {target_region}")
     session_kwargs = {"region_name": target_region}
     client_kwargs = {**session_kwargs}
 
     profile_name = os.environ.get("AWS_PROFILE")
     if profile_name:
-        print(f"  Using profile: {profile_name}")
         session_kwargs["profile_name"] = profile_name
 
-    retry_config = Config(
-        region_name=target_region,
-        retries={
-            "max_attempts": 10,
-            "mode": "standard",
-        },
-    )
+    retry_config = Config(region_name=target_region, retries={"max_attempts": 10, "mode": "standard"})
     session = boto3.Session(**session_kwargs)
 
     if assumed_role:
-        print(f"  Using role: {assumed_role}", end="")
         sts = session.client("sts")
-        response = sts.assume_role(
-            RoleArn=str(assumed_role), RoleSessionName="langchain-llm-1"
-        )
-        print(" ... successful!")
+        response = sts.assume_role(RoleArn=str(assumed_role), RoleSessionName="langchain-llm-1")
         client_kwargs["aws_access_key_id"] = response["Credentials"]["AccessKeyId"]
-        client_kwargs["aws_secret_access_key"] = response["Credentials"][
-            "SecretAccessKey"
-        ]
+        client_kwargs["aws_secret_access_key"] = response["Credentials"]["SecretAccessKey"]
         client_kwargs["aws_session_token"] = response["Credentials"]["SessionToken"]
 
-    if runtime:
-        service_name = "bedrock-runtime"
-    else:
-        service_name = "bedrock"
-
-    bedrock_client = session.client(
-        service_name=service_name, config=retry_config, **client_kwargs
-    )
+    service_name = "bedrock-runtime" if runtime else "bedrock"
+    bedrock_client = session.client(service_name=service_name, config=retry_config, **client_kwargs)
 
     return bedrock_client
 
-"""
-ブログコンテンツを要約する
-Args:
-    blog_body (str): The content of the blog post to be summarized
-    language (str): The language for the summary
-    persona (str): The persona to use for the summary
-Returns:
-    str: The summarized text
-"""
-def summarize_blog(
-    blog_body,
-    language,
-    persona,
-):
-
-    boto3_bedrock = get_bedrock_client(
-        assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None),
-        region=MODEL_REGION,
-    )
+def summarize_blog(blog_body, language, persona):
+    boto3_bedrock = get_bedrock_client(assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None), region=MODEL_REGION)
     beginning_word = "<output>"
     prompt_data = f"""
 <input>{blog_body}</input>
@@ -149,12 +86,7 @@ Follow the instruction.
 
     user_message = {
         "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": prompt_data,
-            }
-        ],
+        "content": [{"type": "text", "text": prompt_data}],
     }
 
     assistant_message = {
@@ -164,16 +96,14 @@ Follow the instruction.
 
     messages = [user_message, assistant_message]
 
-    body = json.dumps(
-        {
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": max_tokens,
-            "messages": messages,
-            "temperature": 0.5,
-            "top_p": 1,
-            "top_k": 250,
-        }
-    )
+    body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": max_tokens,
+        "messages": messages,
+        "temperature": 0.5,
+        "top_p": 1,
+        "top_k": 250,
+    })
 
     accept = "application/json"
     contentType = "application/json"
@@ -186,7 +116,6 @@ Follow the instruction.
         response_body = json.loads(response.get("body").read().decode())
         outputText = beginning_word + response_body.get("content")[0]["text"]
         print(outputText)
-        # extract contant inside <summary> tag
         summary = re.findall(r"<summary>([\s\S]*?)</summary>", outputText)[0]
         detail = re.findall(r"<thinking>([\s\S]*?)</thinking>", outputText)[0]
     except ClientError as error:
@@ -201,9 +130,6 @@ Follow the instruction.
 
     return summary, detail
 
-# Bedrockで要約し、DBに保存
-# 通知を送信
-# item_list (list): List of articles to be notified
 def push_notification(item_list):
     for item in item_list:
         notifier = NOTIFIERS[item["rss_notifier_name"]]
@@ -211,65 +137,50 @@ def push_notification(item_list):
         destination = notifier["destination"]
         ssm_response = ssm.get_parameter(Name=webhook_url_parameter_name, WithDecryption=True)
         app_webhook_url = ssm_response["Parameter"]["Value"]
-        
+
         item_url = item["rss_link"]
-
-        # Get the blog context
         content = get_blog_content(item_url)
-
-        # Summarize the blog
         summarizer = SUMMARIZERS[notifier["summarizerName"]]
         summary, detail = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
 
-        # 要約と詳細をitem変数に追加
         item["summary"] = summary
         item["detail"] = detail
 
         # 通知用のメッセージを作成し、Slackに送信
-        # msg = {
-        #     "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
-        # }
-        # encoded_msg = json.dumps(msg).encode("utf-8")
-        # print("push_msg:{}".format(item))
-        # headers = {
-        #     "Content-Type": "application/json",
-        # }
-        # req = urllib.request.Request(app_webhook_url, encoded_msg, headers)
-        # with urllib.request.urlopen(req) as res:
-        #     print(res.read())
-        # time.sleep(0.5)
+        msg = {
+            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
+        }
+        encoded_msg = json.dumps(msg).encode("utf-8")
+        print("push_msg:{}".format(item))
+        headers = {
+            "Content-Type": "application/json",
+        }
+        req = urllib.request.Request(app_webhook_url, encoded_msg, headers)
+        with urllib.request.urlopen(req) as res:
+            print(res.read())
+        time.sleep(0.5)
 
         # DynamoDBに要約と詳細を保存
         update_item_in_dynamodb(item)
 
-# Bedrockによる要約をDynamoDBに保存
 def update_item_in_dynamodb(item):
     try:
-        link = item['rss_link']
-        
-        response = table.get_item(
+        table.update_item(
             Key={
-                'url': link
-            }
+                'url': item['rss_link'],
+                'notifier_name': item['rss_notifier_name']
+            },
+            UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, detail=:d",
+            ExpressionAttributeValues={
+                ':t': item['rss_title'],
+                ':c': item['rss_category'],
+                ':p': item['rss_time'],
+                ':s': item['summary'],
+                ':d': item['detail']
+            },
+            ReturnValues="UPDATED_NEW"
         )
-        if 'Item' in response:
-            table.update_item(
-                Key={
-                    'url': link
-                },
-                UpdateExpression="SET title=:t, category=:c, pubtime=:p, notifier_name=:n, summary=:s, detail=:d",
-                ExpressionAttributeValues={
-                    ':t': item['rss_title'],
-                    ':c': item['rss_category'],
-                    ':p': item['rss_time'],
-                    ':n': item['rss_notifier_name'],
-                    ':s': item['summary'],
-                    ':d': item['detail']
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            print(f"Item updated: {link}")
-
+        print(f"Item updated: {item['rss_link']}")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -290,15 +201,9 @@ def get_new_entries(blog_entries):
     return res_list
 
 def handler(event, context):
-    """Notify about blog entries registered in DynamoDB
-
-    Args:
-        event (dict): Information about the updated items notified from DynamoDB
-    """
-
     try:
         new_data = get_new_entries(event["Records"])
-        if 0 < len(new_data):
+        if len(new_data) > 0:
             push_notification(new_data)
     except Exception as e:
         print(traceback.print_exc())
