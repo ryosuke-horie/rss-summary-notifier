@@ -45,41 +45,25 @@ Args:
     category (str): The category of the blog post
     pubtime (str): The publication date of the blog post
 """
-def write_to_table(item):
+def write_to_table(link, title, category, pubtime, notifier_name):
     try:
-        link = item['url']
-        
-        # Check if item with the given link already exists
-        response = table.get_item(
-            Key={
-                'url': link
-            }
-        )
-        if 'Item' in response:
-            # Item exists, update it
-            table.update_item(
-                Key={
-                    'url': link
-                },
-                UpdateExpression="SET title=:t, category=:c, pubtime=:p, notifier_name=:n, summary=:s, detail=:d",
-                ExpressionAttributeValues={
-                    ':t': item['title'],
-                    ':c': item['category'],
-                    ':p': item['pubtime'],
-                    ':n': item['notifier_name'],
-                    ':s': item.get('summary', ''),  # Using .get() to handle cases where summary/detail might not be provided
-                    ':d': item.get('detail', '')
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            print(f"Item updated: {link}")
-        else:
-            # Item does not exist, put new item
-            table.put_item(Item=item)
-            print(f"New item put: {link}")
-
+        item = {
+            "url": link,
+            "notifier_name": notifier_name,
+            "title": title,
+            "category": category,
+            "pubtime": pubtime,
+        }
+        print(item)
+        table.put_item(Item=item)
     except Exception as e:
-        print(f"Error: {e}")
+        # Intentional error handling for duplicates to continue
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            print("Duplicate item put: " + title)
+        else:
+            # Continue for other errors
+            print(e.message)
+
 
 def add_blog(rss_name, entries, notifier_name):
     """Add blog posts
