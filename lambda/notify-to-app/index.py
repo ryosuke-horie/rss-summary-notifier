@@ -226,18 +226,18 @@ def push_notification(item_list):
         item["detail"] = detail
 
         # 通知用のメッセージを作成し、Slackに送信
-        msg = {
-            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
-        }
-        encoded_msg = json.dumps(msg).encode("utf-8")
-        print("push_msg:{}".format(item))
-        headers = {
-            "Content-Type": "application/json",
-        }
-        req = urllib.request.Request(app_webhook_url, encoded_msg, headers)
-        with urllib.request.urlopen(req) as res:
-            print(res.read())
-        time.sleep(0.5)
+        # msg = {
+        #     "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
+        # }
+        # encoded_msg = json.dumps(msg).encode("utf-8")
+        # print("push_msg:{}".format(item))
+        # headers = {
+        #     "Content-Type": "application/json",
+        # }
+        # req = urllib.request.Request(app_webhook_url, encoded_msg, headers)
+        # with urllib.request.urlopen(req) as res:
+        #     print(res.read())
+        # time.sleep(0.5)
 
         # DynamoDBに要約と詳細を保存
         update_item_in_dynamodb(item)
@@ -246,6 +246,7 @@ def push_notification(item_list):
 def update_item_in_dynamodb(item):
     try:
         link = item['rss_link']
+        print(DDB_TABLE_NAME)
         
         response = table.get_item(
             Key={
