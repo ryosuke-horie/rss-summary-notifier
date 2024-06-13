@@ -35,6 +35,11 @@ jobs:
       - name: Build
         run: bun run build
         working-directory: frontend
+        env:
+          AWS_REGION: 'us-east-1'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TABLE_NAME: ${{ secrets.TABLE_NAME }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
