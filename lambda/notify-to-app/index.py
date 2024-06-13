@@ -263,24 +263,12 @@ def update_item_in_dynamodb(item):
                     ':c': item['rss_category'],
                     ':p': item['rss_time'],
                     ':n': item['rss_notifier_name'],
-                    ':s': item['summary']
+                    ':s': item['summary'],
                     ':d': item['detail']
                 },
                 ReturnValues="UPDATED_NEW"
             )
             print(f"Item updated: {link}")
-        else:
-            item = {
-                "url": link,
-                "title": item['rss_title'],
-                "category": item['rss_category'],
-                "pubtime": item['rss_time'],
-                "notifier_name": item['rss_notifier_name'],
-                "summary": item.get('summary', ''),
-                "detail": item.get('detail', ''),
-            }
-            table.put_item(Item=item)
-            print(f"New item put: {link}")
 
     except Exception as e:
         print(f"Error: {e}")

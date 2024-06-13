@@ -151,7 +151,7 @@ export class RssSummaryNotifierStack extends Stack {
 			// 通知のスケジュールを取得
 			// 実行するのは → 毎日の0時
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "30",
+				minute: "08",
 				hour: "*",
 				day: "*",
 				month: "*",

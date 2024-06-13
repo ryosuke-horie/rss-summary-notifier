@@ -35,14 +35,6 @@
         "rssUrl": {
           "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/"
         }
-      },
-      "MatterMost": {
-        "destination": "mattermost",
-        "summarizerName": "AwsSolutionsArchitectJapanese",
-        "webhookUrlParameterName": "/WhatsNew/URL",
-        "rssUrl": {
-          "What’s new": "https://aws.amazon.com/about-aws/whats-new/recent/feed/"
-        }
       }
     },
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
