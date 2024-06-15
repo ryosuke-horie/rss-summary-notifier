@@ -1,9 +1,12 @@
 name: frontend-deploy-scheduled
 
-# 4時間ごとに実行する。
+# 8時, 12時, 17時, 21時に実行
 on:
   schedule:
-    - cron: '0 */4 * * *'
+    - cron: '0 8 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 17 * * *'
+    - cron: '0 21 * * *'
 
 env:
   AWS_REGION: "us-east-1"
