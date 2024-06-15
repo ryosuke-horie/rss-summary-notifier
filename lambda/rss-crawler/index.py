@@ -1,15 +1,9 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
-
 import boto3
 import datetime
 import feedparser
 import json
 import os
 import dateutil.parser
-
-# CRAWL_BLOG_URL = json.loads(os.environ["RSS_URL"])
-# NOTIFIERS = json.loads(os.environ["NOTIFIERS"])
 
 DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamo = boto3.resource("dynamodb")
@@ -23,7 +17,7 @@ Args:
 def recently_published(pubdate):
     elapsed_time = datetime.datetime.now() - str2datetime(pubdate)
     print(elapsed_time)
-    if elapsed_time.days >= 1:
+    if elapsed_time.days >= 3:
         return False
 
     return True
@@ -48,7 +42,7 @@ Args:
 def write_to_table(link, title, category, pubtime, notifier_name):
     try:
         current_time = datetime.datetime.now()
-        ttl_time = int((current_time + datetime.timedelta(hours=24)).timestamp())  # 24時間後のタイムスタンプ
+        ttl_time = int((current_time + datetime.timedelta(hours=72)).timestamp())  # 3日後のタイムスタンプ
 
         item = {
             "url": link,

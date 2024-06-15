@@ -34,8 +34,7 @@
         "webhookUrlParameterName": "/WhatsNew/URL",
         "rssUrl": {
           "zenn": "https://zenn.dev/feed",
-          "aws-whatsnew": "https://aws.amazon.com/jp/new/feed/",
-          "classmethod": "https://dev.classmethod.jp/feed/"
+          "aws-whatsnew": "https://aws.amazon.com/jp/new/feed/"
         }
       }
     },
