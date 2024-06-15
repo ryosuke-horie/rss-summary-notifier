@@ -1,14 +1,13 @@
 import boto3
 import json
 import os
-import time
 import traceback
 import urllib.request
 from typing import Optional
 from botocore.config import Config
 from bs4 import BeautifulSoup
 from botocore.exceptions import ClientError
-from datetime import datetime, timezone
+from datetime import datetime
 import re
 
 MODEL_ID = os.environ["MODEL_ID"]
@@ -19,8 +18,6 @@ SUMMARIZERS = json.loads(os.environ["SUMMARIZERS"])
 DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(DDB_TABLE_NAME)
-
-ssm = boto3.client("ssm")
 
 def get_blog_content(url):
     try:
@@ -166,13 +163,9 @@ Follow the instruction.
 
     return summary
 
-def push_notification(item_list):
+def process_items(item_list):
     for item in item_list:
         notifier = NOTIFIERS[item["rss_notifier_name"]]
-        webhook_url_parameter_name = notifier["webhookUrlParameterName"]
-        destination = notifier["destination"]
-        ssm_response = ssm.get_parameter(Name=webhook_url_parameter_name, WithDecryption=True)
-        app_webhook_url = ssm_response["Parameter"]["Value"]
 
         item_url = item["rss_link"]
         content = get_blog_content(item_url)
@@ -184,20 +177,6 @@ def push_notification(item_list):
         # OGP画像を取得して保存
         ogp_image_url = get_ogp_image(item_url)
         item["ogp_image"] = ogp_image_url if ogp_image_url else ""
-
-        # 通知用のメッセージを作成し、Slackに送信
-        msg = {
-            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
-        }
-        encoded_msg = json.dumps(msg).encode("utf-8")
-        print("push_msg:{}".format(item))
-        headers = {
-            "Content-Type": "application/json",
-        }
-        req = urllib.request.Request(app_webhook_url, encoded_msg, headers)
-        with urllib.request.urlopen(req) as res:
-            print(res.read())
-        time.sleep(0.5)
 
         # DynamoDBに要約と詳細を保存
         update_item_in_dynamodb(item)
@@ -244,6 +223,6 @@ def handler(event, context):
     try:
         new_data = get_new_entries(event["Records"])
         if len(new_data) > 0:
-            push_notification(new_data)
+            process_items(new_data)
     except Exception as e:
         print(traceback.print_exc())
