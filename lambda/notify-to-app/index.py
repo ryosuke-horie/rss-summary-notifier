@@ -52,7 +52,14 @@ def get_blog_content(url):
         print(f"Error accessing {url}: {e.reason}")
         return None
 
-# OGP画像の収集を行う
+def decode_url(url):
+    try:
+        decoded_url = urllib.parse.unquote(url)
+        return decoded_url
+    except Exception as e:
+        print(f"Error decoding URL {url}: {e}")
+        return url
+
 def get_ogp_image(url):
     try:
         if url.lower().startswith(("http://", "https://")):
@@ -62,9 +69,17 @@ def get_ogp_image(url):
                     soup = BeautifulSoup(html, "html.parser")
                     ogp_image = soup.find("meta", property="og:image")
                     if ogp_image:
-                        return ogp_image["content"]
+                        ogp_image_url = decode_url(ogp_image["content"])
+                        return ogp_image_url
                     else:
-                        return None
+                        # Check for other possible meta tags or attributes
+                        ogp_image = soup.find("meta", attrs={"property": "twitter:image"})
+                        if ogp_image:
+                            ogp_image_url = decode_url(ogp_image["content"])
+                            return ogp_image_url
+                        else:
+                            # Add more fallbacks if needed
+                            return None
         else:
             print(f"Error accessing {url}, status code {response.getcode()}")
             return None
@@ -146,7 +161,7 @@ Follow the instruction.
         )
         response_body = json.loads(response.get("body").read().decode())
         outputText = beginning_word + response_body.get("content")[0]["text"]
-        print(outputText)
+        print(f"Model Output: {outputText}")
         summary = re.findall(r"<summary>([\s\S]*?)</summary>", outputText)[0]
     except ClientError as error:
         if error.response["Error"]["Code"] == "AccessDeniedException":
@@ -160,6 +175,9 @@ Follow the instruction.
     except IndexError as e:
         print(f"Error extracting summary or thinking: {e}")
         summary = "Summary extraction failed."
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        summary = "An unexpected error occurred."
 
     return summary
 
