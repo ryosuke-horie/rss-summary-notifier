@@ -1,4 +1,5 @@
 import Link from "next/link";
+import noImage from "../../public/noImage.webp";
 
 interface CardProps {
 	item: {
@@ -10,8 +11,7 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ item }) => {
-	const defaultImage =
-		"https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg";
+	const defaultImage = noImage.src;
 	const imageUrl = item.ogp_image ? item.ogp_image : defaultImage;
 
 	return (
