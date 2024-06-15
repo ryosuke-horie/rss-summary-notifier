@@ -19,8 +19,6 @@ DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(DDB_TABLE_NAME)
 
-ssm = boto3.client("ssm")
-
 def get_blog_content(url):
     try:
         if url.lower().startswith(("http://", "https://")):
