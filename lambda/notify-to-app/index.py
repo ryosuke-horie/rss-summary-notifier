@@ -1,14 +1,13 @@
 import boto3
 import json
 import os
-import time
 import traceback
 import urllib.request
 from typing import Optional
 from botocore.config import Config
 from bs4 import BeautifulSoup
 from botocore.exceptions import ClientError
-from datetime import datetime, timezone
+from datetime import datetime
 import re
 
 MODEL_ID = os.environ["MODEL_ID"]
