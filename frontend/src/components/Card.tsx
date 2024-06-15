@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface CardProps {
 	item: {
 		title: string;
@@ -13,15 +15,23 @@ const Card: React.FC<CardProps> = ({ item }) => {
 	const imageUrl = item.ogp_image ? item.ogp_image : defaultImage;
 
 	return (
-		<div className="card w-96 bg-base-100 shadow-xl">
-			<figure>
-				<img src={imageUrl} alt="Thumbnail" />
-			</figure>
-			<div className="card-body">
-				<h2 className="card-title">{item.title}</h2>
-				<p>{item.summary}</p>
+		<Link href={item.url} passHref target="_blank">
+			<div className="card w-96 bg-base-100 shadow-xl flex flex-col h-96">
+				<figure className="h-1/2">
+					<img
+						src={imageUrl}
+						alt="Thumbnail"
+						className="w-full h-full object-cover"
+					/>
+				</figure>
+				<div className="card-body flex flex-col justify-between p-4">
+					<h2 className="card-title text-lg font-semibold line-clamp-2">
+						{item.title}
+					</h2>
+					<p className="text-sm line-clamp-3">{item.summary}</p>
+				</div>
 			</div>
-		</div>
+		</Link>
 	);
 };
 
