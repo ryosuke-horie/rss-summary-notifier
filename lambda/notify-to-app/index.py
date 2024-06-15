@@ -257,6 +257,7 @@ def push_notification(item_list):
         # DynamoDBに要約と詳細を保存
         update_item_in_dynamodb(item)
 
+# DynamoDB更新処理
 def update_item_in_dynamodb(item):
     try:
         table.update_item(
@@ -272,7 +273,7 @@ def update_item_in_dynamodb(item):
                 ':s': item['summary'],
                 ':d': item['detail'],
                 ':tg': item['tags'],
-                ':oi': item.get('ogp_image', '')
+                ':oi': item['ogp_image']
             },
             ReturnValues="UPDATED_NEW"
         )
