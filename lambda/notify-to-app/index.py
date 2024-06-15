@@ -151,8 +151,6 @@ Follow the instruction.
         outputText = beginning_word + response_body.get("content")[0]["text"]
         print(outputText)
         summary = re.findall(r"<summary>([\s\S]*?)</summary>", outputText)[0]
-        thinking_match = re.findall(r"<thinking>([\s\S]*?)</thinking>", outputText)
-        detail = thinking_match[0] if thinking_match else "No detailed thinking found."
     except ClientError as error:
         if error.response["Error"]["Code"] == "AccessDeniedException":
             print(
@@ -165,9 +163,8 @@ Follow the instruction.
     except IndexError as e:
         print(f"Error extracting summary or thinking: {e}")
         summary = "Summary extraction failed."
-        detail = "Detail extraction failed."
 
-    return summary, detail
+    return summary
 
 def push_notification(item_list):
     for item in item_list:
@@ -180,10 +177,9 @@ def push_notification(item_list):
         item_url = item["rss_link"]
         content = get_blog_content(item_url)
         summarizer = SUMMARIZERS[notifier["summarizerName"]]
-        summary, detail = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
+        summary = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
 
         item["summary"] = summary
-        item["detail"] = detail
 
         # OGP画像を取得して保存
         ogp_image_url = get_ogp_image(item_url)
@@ -214,13 +210,12 @@ def update_item_in_dynamodb(item):
                 'url': item['rss_link'],
                 'notifier_name': item['rss_notifier_name']
             },
-            UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, detail=:d, ogp_image=:oi",
+            UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, ogp_image=:oi",
             ExpressionAttributeValues={
                 ':t': item['rss_title'],
                 ':c': item['rss_category'],
                 ':p': item['rss_time'],
                 ':s': item['summary'],
-                ':d': item['detail'],
                 ':oi': item['ogp_image']
             },
             ReturnValues="UPDATED_NEW"
