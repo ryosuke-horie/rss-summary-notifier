@@ -33,9 +33,7 @@
         "summarizerName": "AwsSolutionsArchitectJapanese",
         "webhookUrlParameterName": "/WhatsNew/URL",
         "rssUrl": {
-          "AwsWhatsNew": "https://aws.amazon.com/jp/about-aws/whats-new/recent/feed/",
-          "zenn": "https://zenn.dev/feed",
-          "qiita": "https://qiita.com/popular-items/feed"
+          "zenn": "https://zenn.dev/feed"
         }
       }
     },
