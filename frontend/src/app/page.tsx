@@ -10,6 +10,7 @@ interface HomeProps {
     detail: string;
     pubtime: string;
     url: string;
+    ogp_image: string;
   }[];
 }
 
@@ -26,6 +27,7 @@ const getData = async (): Promise<HomeProps> => {
     detail: item.detail,
     pubtime: item.pubtime,
     url: item.url,
+    ogp_image: item.ogp_image,
   }));
 
   return { items };
