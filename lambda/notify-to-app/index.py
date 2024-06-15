@@ -55,6 +55,26 @@ def get_blog_content(url):
         print(f"Error accessing {url}: {e.reason}")
         return None
 
+# OGP画像の収集を行う
+def get_ogp_image(url):
+    try:
+        if url.lower().startswith(("http://", "https://")):
+            with urllib.request.urlopen(url) as response:
+                html = response.read()
+                if response.getcode() == 200:
+                    soup = BeautifulSoup(html, "html.parser")
+                    ogp_image = soup.find("meta", property="og:image")
+                    if ogp_image:
+                        return ogp_image["content"]
+                    else:
+                        return None
+        else:
+            print(f"Error accessing {url}, status code {response.getcode()}")
+            return None
+    except urllib.error.URLError as e:
+        print(f"Error accessing {url}: {e.reason}")
+        return None
+
 def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str] = None, runtime: Optional[bool] = True):
     if region is None:
         target_region = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
@@ -82,6 +102,59 @@ def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str]
     bedrock_client = session.client(service_name=service_name, config=retry_config, **client_kwargs)
 
     return bedrock_client
+
+def extract_tech_tags(blog_body):
+    boto3_bedrock = get_bedrock_client(assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None), region=MODEL_REGION)
+    prompt_data = f"""
+<input>{blog_body}</input>
+<instruction>Extract all relevant technology-related tags from the given input text. The tags should be keywords that describe technologies, programming languages, frameworks, tools, and other technical terms present in the text. List each tag as a separate item in a JSON array.</instruction>
+"""
+
+    max_tokens = 4096
+
+    user_message = {
+        "role": "user",
+        "content": [{"type": "text", "text": prompt_data}],
+    }
+
+    assistant_message = {
+        "role": "assistant",
+        "content": [{"type": "text", "text": "[]"}],
+    }
+
+    messages = [user_message, assistant_message]
+
+    body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": max_tokens,
+        "messages": messages,
+        "temperature": 0.5,
+        "top_p": 1,
+        "top_k": 250,
+    })
+
+    accept = "application/json"
+    contentType = "application/json"
+    tags = []
+
+    try:
+        response = boto3_bedrock.invoke_model(
+            body=body, modelId=MODEL_ID, accept=accept, contentType=contentType
+        )
+        response_body = json.loads(response.get("body").read().decode())
+        tags = json.loads(response_body.get("content")[0]["text"])
+        print(tags)
+    except ClientError as error:
+        if error.response["Error"]["Code"] == "AccessDeniedException":
+            print(
+                f"\x1b[41m{error.response['Error']['Message']}\
+            \nTo troubeshoot this issue please refer to the following resources.\ \nhttps://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_access-denied.html\
+            \nhttps://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html\x1b[0m\n"
+            )
+        else:
+            raise error
+
+    return tags
 
 def summarize_blog(blog_body, language, persona):
     boto3_bedrock = get_bedrock_client(assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None), region=MODEL_REGION)
@@ -142,7 +215,9 @@ Follow the instruction.
         else:
             raise error
 
-    return summary, detail
+    tags = extract_tech_tags(blog_body)
+
+    return summary, detail, tags
 
 def push_notification(item_list):
     for item in item_list:
@@ -155,14 +230,19 @@ def push_notification(item_list):
         item_url = item["rss_link"]
         content = get_blog_content(item_url)
         summarizer = SUMMARIZERS[notifier["summarizerName"]]
-        summary, detail = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
+        summary, detail, tags = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
 
         item["summary"] = summary
         item["detail"] = detail
+        item["tags"] = tags
+
+        # OGP画像を取得して保存
+        ogp_image_url = get_ogp_image(item_url)
+        item["ogp_image"] = ogp_image_url if ogp_image_url else ""
 
         # 通知用のメッセージを作成し、Slackに送信
         msg = {
-            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']}"
+            "text": f"<{item['rss_link']}|{item['rss_title']}> {item['summary']} \nTags: {', '.join(tags)}"
         }
         encoded_msg = json.dumps(msg).encode("utf-8")
         print("push_msg:{}".format(item))
@@ -184,13 +264,15 @@ def update_item_in_dynamodb(item):
                 'url': item['rss_link'],
                 'notifier_name': item['rss_notifier_name']
             },
-            UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, detail=:d",
+            UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, detail=:d, tags=:tg, ogp_image=:oi",
             ExpressionAttributeValues={
                 ':t': item['rss_title'],
                 ':c': item['rss_category'],
                 ':p': item['rss_time'],
                 ':s': item['summary'],
                 ':d': item['detail'],
+                ':tg': item['tags'],
+                ':oi': item.get('ogp_image', '')
             },
             ReturnValues="UPDATED_NEW"
         )
