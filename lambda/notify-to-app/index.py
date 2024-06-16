@@ -62,29 +62,44 @@ def decode_url(url):
 
 def get_ogp_image(url):
     try:
+        # URLがhttpまたはhttpsで始まるかチェック
         if url.lower().startswith(("http://", "https://")):
+            # URLにアクセスしてレスポンスを取得
             with urllib.request.urlopen(url) as response:
                 html = response.read()
                 if response.getcode() == 200:
                     soup = BeautifulSoup(html, "html.parser")
-                    ogp_image = soup.find("meta", property="og:image")
-                    if ogp_image:
-                        ogp_image_url = decode_url(ogp_image["content"])
-                        return ogp_image_url
-                    else:
-                        # Check for other possible meta tags or attributes
-                        ogp_image = soup.find("meta", attrs={"property": "twitter:image"})
-                        if ogp_image:
+                    
+                    # いくつかのメタタグをチェックしてOGP画像を探す
+                    meta_tags = [
+                        ("meta", {"property": "og:image"}),         # Open Graph画像
+                        ("meta", {"property": "twitter:image"}),     # Twitter画像
+                        ("meta", {"name": "og:image"}),              # 別のOpen Graph画像
+                        ("meta", {"name": "twitter:image"}),         # 別のTwitter画像
+                        ("meta", {"itemprop": "image"})              # Schema.orgの画像
+                    ]
+                    
+                    # 各メタタグを順にチェックし、画像URLが見つかればそれを返す
+                    for tag, attrs in meta_tags:
+                        ogp_image = soup.find(tag, attrs=attrs)
+                        if ogp_image and ogp_image.get("content"):
                             ogp_image_url = decode_url(ogp_image["content"])
                             return ogp_image_url
-                        else:
-                            # Add more fallbacks if needed
-                            return None
+                    
+                    # OGP画像が見つからなかった場合のログ
+                    print(f"No OGP image found for {url}")
+                    return None
         else:
-            print(f"Error accessing {url}, status code {response.getcode()}")
+            # URLが無効な場合のログ
+            print(f"Invalid URL {url}")
             return None
     except urllib.error.URLError as e:
+        # URLにアクセスできなかった場合のエラーログ
         print(f"Error accessing {url}: {e.reason}")
+        return None
+    except Exception as e:
+        # その他の予期しないエラーの場合のログ
+        print(f"Unexpected error while accessing {url}: {e}")
         return None
 
 def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str] = None, runtime: Optional[bool] = True):
@@ -181,10 +196,12 @@ Follow the instruction.
 
     return summary
 
+
 def process_items(item_list):
     for item in item_list:
         notifier = NOTIFIERS[item["rss_notifier_name"]]
 
+        # アイテムのURLを取得して、ブログの内容を取得
         item_url = item["rss_link"]
         content = get_blog_content(item_url)
         summarizer = SUMMARIZERS[notifier["summarizerName"]]
@@ -204,22 +221,23 @@ def update_item_in_dynamodb(item):
     try:
         table.update_item(
             Key={
-                'url': item['rss_link'],
-                'notifier_name': item['rss_notifier_name']
+                'url': item['rss_link'],                        # URLをキーとして使用
+                'notifier_name': item['rss_notifier_name']      # Notifier名もキーとして使用
             },
             UpdateExpression="SET title=:t, category=:c, pubtime=:p, summary=:s, ogp_image=:oi",
             ExpressionAttributeValues={
-                ':t': item['rss_title'],
-                ':c': item['rss_category'],
-                ':p': item['rss_time'],
-                ':s': item['summary'],
-                ':oi': item['ogp_image']
+                ':t': item['rss_title'],                        # タイトルを更新
+                ':c': item['rss_category'],                     # カテゴリーを更新
+                ':p': item['rss_time'],                         # 公開時間を更新
+                ':s': item['summary'],                          # 要約を更新
+                ':oi': item['ogp_image']                        # OGP画像URLを更新
             },
             ReturnValues="UPDATED_NEW"
         )
         print(f"Item updated: {item['rss_link']}")
     except Exception as e:
-        print(f"Error: {e}")
+        # DynamoDB更新エラーのログ
+        print(f"Error updating DynamoDB item: {e}")
 
 def get_new_entries(blog_entries):
     res_list = []
