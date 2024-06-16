@@ -53,13 +53,16 @@ def write_to_table(link, title, category, pubtime, notifier_name):
             "expireAt": ttl_time  # TTL用のカラム
         }
         print(item)
-        table.put_item(Item=item)
+        
+        # 条件付き書き込み: url が存在しない場合のみ書き込む
+        table.put_item(
+            Item=item,
+            ConditionExpression="attribute_not_exists(url)"
+        )
     except Exception as e:
-        # Intentional error handling for duplicates to continue
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             print("Duplicate item put: " + title)
         else:
-            # Continue for other errors
             print(e.message)
 
 
