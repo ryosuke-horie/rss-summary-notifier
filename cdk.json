@@ -35,7 +35,8 @@
         "rssUrl": {
           "zenn": "https://zenn.dev/feed",
           "aws-whatsnew": "https://aws.amazon.com/jp/new/feed/",
-          "chot-inc": "https://zenn.dev/p/chot/feed"
+          "chot-inc": "https://zenn.dev/p/chot/feed",
+          "classMethod": "https://dev.classmethod.jp/feed/"
         }
       }
     },
