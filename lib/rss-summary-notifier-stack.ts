@@ -101,7 +101,6 @@ export class RssSummaryNotifierStack extends Stack {
 
 		// DynamoDBをアップデートするため権限を付与
 		rssHistoryTable.grantReadWriteData(notifyNewEntryRole);
-		// rssHistoryTable.grantWriteData(notifyNewEntryRole);
 
 		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
@@ -151,7 +150,7 @@ export class RssSummaryNotifierStack extends Stack {
 			const notifier = notifiers[notifierName];
 			// 毎時50分に通知を行う
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "30",
+				minute: "15",
 				hour: "*",
 				day: "*",
 				month: "*",
