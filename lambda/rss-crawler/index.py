@@ -4,6 +4,7 @@ import feedparser
 import json
 import os
 import dateutil.parser
+from botocore.exceptions import ClientError
 
 # 環境変数からDynamoDBのテーブル名を取得
 DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
@@ -19,7 +20,6 @@ Args:
 def recently_published(pubdate):
     # 現在の日時と公開日時の差を計算
     elapsed_time = datetime.datetime.now() - str2datetime(pubdate)
-    print(elapsed_time)
     # 経過日数が3日以上ならFalseを返す
     if elapsed_time.days >= 3:
         return False
@@ -59,20 +59,23 @@ def write_to_table(link, title, category, pubtime, notifier_name):
             "pubtime": pubtime,
             "expireAt": ttl_time  # TTL用のカラム
         }
-        print(item)
         
         # 条件付き書き込み: URLが存在しない場合のみ書き込む
         table.put_item(
             Item=item,
-            ConditionExpression="attribute_not_exists(url)"
+            ConditionExpression="attribute_not_exists(#url)",
+            ExpressionAttributeNames={"#url": "url"}
         )
-    except Exception as e:
+    except ClientError as e:
         # 重複エラーの場合の処理
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             print("Duplicate item put: " + title)
         else:
             # その他のエラーの場合の処理
-            print(e.message)
+            print(e.response['Error']['Message'])
+    except Exception as e:
+        # その他のエラーの場合の処理
+        print(str(e))
 
 """
 ブログ投稿を追加する
@@ -111,8 +114,7 @@ def handler(event, context):
     for rss_name, rss_url in rss_urls.items():
         # RSSフィードを解析
         rss_result = feedparser.parse(rss_url)
-        print(json.dumps(rss_result))
-        print("RSS updated " + rss_result["feed"]["updated"])
+
         # 最近更新されていないRSSフィードは処理しない
         if not recently_published(rss_result["feed"]["updated"]):
             print("Skip RSS " + rss_name)
