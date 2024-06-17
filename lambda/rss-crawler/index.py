@@ -21,7 +21,7 @@ def recently_published(pubdate):
     # 現在の日時と公開日時の差を計算
     elapsed_time = datetime.datetime.now() - str2datetime(pubdate)
     # 経過日数が3日以上ならFalseを返す
-    if elapsed_time.days >= 3:
+    if elapsed_time.days >= 7:
         return False
 
     return True
