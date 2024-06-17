@@ -28,7 +28,7 @@ const Card: React.FC<CardProps> = ({ item }) => {
 					<h2 className="card-title text-lg font-semibold line-clamp-2">
 						{item.title}
 					</h2>
-       <p className="text-sm>【summary】</p>
+					<p className="text-sm">【summary】</p>
 					<p className="text-sm line-clamp-3">{item.summary}</p>
 				</div>
 			</div>
