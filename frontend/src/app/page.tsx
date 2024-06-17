@@ -23,7 +23,7 @@ const getData = async (): Promise<HomeProps> => {
 		summary: item.summary,
 		url: item.url,
 		ogp_image: item.ogp_image,
-	})).reverse();
+	}));
 
 	return { items };
 };
