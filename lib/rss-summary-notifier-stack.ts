@@ -107,7 +107,7 @@ export class RssSummaryNotifierStack extends Stack {
 
 		// Honoで作成するLambda関数（仮）
 		const fn = new NodejsFunction(this, "lambda", {
-			entry: "lambda/index.ts",
+			entry: "packages/backend/src/index.ts",
 			handler: "handler",
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
