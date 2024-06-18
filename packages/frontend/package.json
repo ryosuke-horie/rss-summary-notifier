@@ -1,0 +1,29 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.596.0",
+    "@aws-sdk/lib-dynamodb": "^3.596.0",
+    "@tailwindcss/line-clamp": "^0.4.4",
+    "aws-sdk": "^2.1640.0",
+    "next": "14.2.4",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "daisyui": "latest",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
