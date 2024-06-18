@@ -23,12 +23,11 @@ new FrontendS3CloudFrontStack(app, "FrontendS3CloudFrontStack", { env });
 new OidcStack(app, "OidcStack", { env });
 
 // コストアラート 3$をリミット、閾値を1に設定
-new BillingAlarmStack(app, "billing-alarm", {
+new BillingAlarmStack(app, "BillingAlarmStack", {
 	env,
-	slackWorkspaceId: process.env.SLACK_WORKSPACE_ID as string,
-	slackChannelConfigurationName: process.env
-		.SLACK_CHANNEL_CONFIGURATION_NAME as string,
-	slackChannelId: process.env.SLACK_CHANNEL_ID as string,
+	slackWorkspaceId: "T0776951V0E",
+	slackChannelConfigurationName: "name",
+	slackChannelId: "C077FCEP92Q",
 	budgetLimitAmountUsd: 3,
 	costAnomaryThresholdUsd: 1,
 });
