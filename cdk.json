@@ -37,7 +37,8 @@
           "aws-whatsnew": "https://aws.amazon.com/jp/new/feed/",
           "chot-inc": "https://zenn.dev/p/chot/feed",
           "classMethod": "https://dev.classmethod.jp/feed/",
-          "namalink": "https://zenn.dev/p/manalink_dev/feed"
+          "namalink": "https://zenn.dev/p/manalink_dev/feed",
+          "mixi": "https://zenn.dev/p/mixi/feed"
         }
       }
     },
