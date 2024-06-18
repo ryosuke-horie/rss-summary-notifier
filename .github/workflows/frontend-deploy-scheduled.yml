@@ -30,11 +30,11 @@ jobs:
 
       - name: Setup dependencies
         run: bun install
-        working-directory: frontend
+        working-directory: packages/frontend
 
       - name: Build
         run: bun run build
-        working-directory: frontend
+        working-directory: packages/frontend
         env:
           AWS_REGION: 'us-east-1'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -49,5 +49,5 @@ jobs:
 
       - name: Upload files to S3 and Clear CF cache
         run: |
-          aws s3 sync --exact-timestamps --delete ./frontend/out s3://${{ env.AWS_BUCKET_NAME }}/
+          aws s3 sync --exact-timestamps --delete ./packages/frontend/out s3://${{ env.AWS_BUCKET_NAME }}/
           aws cloudfront create-invalidation --distribution-id ${{ env.CF_DISTRIBUTION_ID }} --paths "/*"
