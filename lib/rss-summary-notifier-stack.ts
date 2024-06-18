@@ -149,6 +149,7 @@ export class RssSummaryNotifierStack extends Stack {
 		for (const notifierName in notifiers) {
 			const notifier = notifiers[notifierName];
 			// 毎時50分に通知を行う
+			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 			const schedule: CronOptions = notifier["schedule"] || {
 				minute: "50",
 				hour: "*",
@@ -157,6 +158,7 @@ export class RssSummaryNotifierStack extends Stack {
 				year: "*",
 			};
 			// 通知先のURLを取得
+			// biome-ignore lint/complexity/useLiteralKeys: このコードは、notifiersの内容によって動的に処理を行うため、リテラルキーを使用することができません
 			const webhookUrlParameterName = notifier["webhookUrlParameterName"];
 			const webhookUrlParameterStore =
 				StringParameter.fromSecureStringParameterAttributes(
