@@ -12,18 +12,27 @@ interface HomeProps {
 }
 
 const getData = async (): Promise<HomeProps> => {
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	const client: any = createDynamoDbClient();
 	const params: ScanCommandInput = {
 		TableName: process.env.TABLE_NAME,
 	};
 	const { Items: allItems } = await client.send(new ScanCommand(params));
 
-	const items = allItems.map((item: any) => ({
-		title: item.title,
-		summary: item.summary,
-		url: item.url,
-		ogp_image: item.ogp_image,
-	}));
+	// データをマッピングして expiredAt で並び替え
+	const items = allItems
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		.map((item: any) => ({
+			title: item.title,
+			summary: item.summary,
+			url: item.url,
+			ogp_image: item.ogp_image,
+			expiredAt: item.expiredAt,
+		}))
+		.sort(
+			(a: { expiredAt: number }, b: { expiredAt: number }) =>
+				b.expiredAt - a.expiredAt,
+		); // expiredAtで降順に並び替え
 
 	return { items };
 };
@@ -37,6 +46,7 @@ export default async function Home() {
 			</h1>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
 				{items.map((item, index) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 					<Card key={index} item={item} />
 				))}
 			</div>
