@@ -38,7 +38,14 @@
           "chot-inc": "https://zenn.dev/p/chot/feed",
           "classMethod": "https://dev.classmethod.jp/feed/",
           "namalink": "https://zenn.dev/p/manalink_dev/feed",
-          "mixi": "https://zenn.dev/p/mixi/feed"
+          "mixi": "https://zenn.dev/p/mixi/feed",
+          "levtech": "https://zenn.dev/p/levtech/feed",
+          "cyboze-front": "https://zenn.dev/p/cybozu_frontend/feed",
+          "praha": "https://zenn.dev/p/praha/feed",
+          "iret": "https://zenn.dev/p/praha/feed",
+          "server-works": "https://blog.serverworks.co.jp/rss",
+          "sansan": "https://buildersbox.corp-sansan.com/rss",
+          "future": "https://future-architect.github.io/atom.xml"
         }
       }
     },
