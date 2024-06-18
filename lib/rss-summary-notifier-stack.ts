@@ -146,6 +146,7 @@ export class RssSummaryNotifierStack extends Stack {
 			},
 		});
 
+		// 通知のスケジュールを設定 EventBridgeのルールを作成
 		for (const notifierName in notifiers) {
 			const notifier = notifiers[notifierName];
 			// 毎時50分に通知を行う
