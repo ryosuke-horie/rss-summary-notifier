@@ -146,17 +146,20 @@ export class RssSummaryNotifierStack extends Stack {
 			},
 		});
 
+		// 通知のスケジュールを設定 EventBridgeのルールを作成
 		for (const notifierName in notifiers) {
 			const notifier = notifiers[notifierName];
 			// 毎時50分に通知を行う
+			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "55",
+				minute: "50",
 				hour: "*",
 				day: "*",
 				month: "*",
 				year: "*",
 			};
 			// 通知先のURLを取得
+			// biome-ignore lint/complexity/useLiteralKeys: このコードは、notifiersの内容によって動的に処理を行うため、リテラルキーを使用することができません
 			const webhookUrlParameterName = notifier["webhookUrlParameterName"];
 			const webhookUrlParameterStore =
 				StringParameter.fromSecureStringParameterAttributes(
