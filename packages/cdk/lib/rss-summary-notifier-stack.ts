@@ -105,7 +105,7 @@ export class RssSummaryNotifierStack extends Stack {
 		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
 			runtime: Runtime.PYTHON_3_11,
-			entry: path.join(__dirname, "../lambda/notify-to-app"),
+			entry: path.join(__dirname, "../../lambda/notify-to-app"),
 			handler: "handler",
 			index: "index.py",
 			timeout: Duration.seconds(180),
@@ -134,7 +134,7 @@ export class RssSummaryNotifierStack extends Stack {
 		// RSSを取得し、DynamoDBに書き込むLambda関数
 		const newsCrawler = new PythonFunction(this, "newsCrawler", {
 			runtime: Runtime.PYTHON_3_11,
-			entry: path.join(__dirname, "../lambda/rss-crawler"),
+			entry: path.join(__dirname, "../../lambda/rss-crawler"),
 			handler: "handler",
 			index: "index.py",
 			timeout: Duration.seconds(60),
