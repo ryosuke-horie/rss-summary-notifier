@@ -23,6 +23,9 @@
       "./node_modules/@types"
     ]
   },
+  "include": [
+    "node_modules/@types/node" 
+  ],
   "exclude": [
     "node_modules",
     "cdk.out",
