@@ -4,29 +4,30 @@ import * as cdk from "aws-cdk-lib";
 import { RssSummaryNotifierStack } from "../lib/rss-summary-notifier-stack";
 import { FrontendS3CloudFrontStack } from "../lib/frontend-s3-cloudfront-stack";
 import { OidcStack } from "../lib/oidc-stack";
+import { BillingAlarmStack } from "../lib/billing_alarm_stack";
 
 const app = new cdk.App();
 
+const env = {
+	account: process.env.CDK_DEFAULT_ACCOUNT,
+	region: process.env.CDK_DEFAULT_REGION,
+};
+
 // RSSサマライザーバッチ処理用のStackを作成する
-new RssSummaryNotifierStack(app, "RssSummaryNotifierStack", {
-	env: {
-		account: process.env.CDK_DEFAULT_ACCOUNT,
-		region: process.env.CDK_DEFAULT_REGION,
-	},
-});
+new RssSummaryNotifierStack(app, "RssSummaryNotifierStack", { env });
 
 // CloudFront + S3でホスティング用のStackを作成する
-new FrontendS3CloudFrontStack(app, "FrontendS3CloudFrontStack", {
-    env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-    },
-});
+new FrontendS3CloudFrontStack(app, "FrontendS3CloudFrontStack", { env });
 
 // GitHub Actions によるデプロイを許可する OIDC プロバイダーを作成する
-new OidcStack(app, "OidcStack", {
-    env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-    },
+new OidcStack(app, "OidcStack", { env });
+
+// コストアラート 3$をリミット、閾値を1に設定
+new BillingAlarmStack(app, "BillingAlarmStack", {
+	env,
+	slackWorkspaceId: "T0776951V0E",
+	slackChannelConfigurationName: "name",
+	slackChannelId: "C077FCEP92Q",
+	budgetLimitAmountUsd: 3,
+	costAnomaryThresholdUsd: 1,
 });
