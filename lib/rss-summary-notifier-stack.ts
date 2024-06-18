@@ -25,6 +25,9 @@ import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "node:path";
 
 export class RssSummaryNotifierStack extends Stack {
@@ -101,6 +104,19 @@ export class RssSummaryNotifierStack extends Stack {
 
 		// DynamoDBをアップデートするため権限を付与
 		rssHistoryTable.grantReadWriteData(notifyNewEntryRole);
+
+		// Honoで作成するLambda関数（仮）
+		const fn = new NodejsFunction(this, "lambda", {
+			entry: "lambda/index.ts",
+			handler: "handler",
+			runtime: lambda.Runtime.NODEJS_20_X,
+		});
+		fn.addFunctionUrl({
+			authType: lambda.FunctionUrlAuthType.NONE,
+		});
+		new apigw.LambdaRestApi(this, "myapi", {
+			handler: fn,
+		});
 
 		// RSSデータを格納するDynamoDBに書き込まれた新しいエントリをSlackに投稿するLambda関数
 		const notifyNewEntry = new PythonFunction(this, "NotifyNewEntry", {
