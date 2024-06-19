@@ -48,7 +48,7 @@ def write_to_table(link, title, category, pubtime, notifier_name):
         # 現在の日時を取得
         current_time = datetime.datetime.now()
         # 3日後のタイムスタンプを計算（TTLのため）
-        ttl_time = int((current_time + datetime.timedelta(hours=72)).timestamp())
+        ttl_time = int((current_time + datetime.timedelta(days=3)).timestamp())
 
         # 書き込むアイテムを作成
         item = {
