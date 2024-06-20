@@ -2,6 +2,7 @@ import { createDynamoDbClient } from "../lib/dynamodb";
 import { ScanCommand, type ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import Card from "@/components/Card";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface HomeProps {
 	items: {
@@ -51,6 +52,7 @@ export default async function Home() {
 					))}
 				</div>
 			</main>
+			<Footer />
 		</div>
 	);
 }
