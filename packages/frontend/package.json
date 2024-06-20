@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.596.0",
     "@aws-sdk/lib-dynamodb": "^3.596.0",
+    "@next/third-parties": "^14.2.4",
     "@tailwindcss/line-clamp": "^0.4.4",
     "aws-sdk": "^2.1640.0",
     "next": "14.2.4",
