@@ -1,6 +1,8 @@
 import { createDynamoDbClient } from "../lib/dynamodb";
 import { ScanCommand, type ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import Card from "@/components/Card";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface HomeProps {
 	items: {
@@ -40,16 +42,17 @@ const getData = async (): Promise<HomeProps> => {
 export default async function Home() {
 	const { items } = await getData();
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-between p-12">
-			<h1 className="text-2xl font-bold text-left mb-8">
-				RSS Summary Notifiers
-			</h1>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-				{items.map((item, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-					<Card key={index} item={item} />
-				))}
-			</div>
-		</main>
+		<div>
+			<Header />
+			<main className="flex min-h-screen flex-col items-center justify-between p-12">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+					{items.map((item, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						<Card key={index} item={item} />
+					))}
+				</div>
+			</main>
+			<Footer />
+		</div>
 	);
 }
