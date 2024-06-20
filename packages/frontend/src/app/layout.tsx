@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { GoogleTagManager } from "@next/third-parties/google";
+import { GoogleTagManager } from "@next/third-parties/google"; // @note: https://blog.kimizuka.org/entry/2024/03/18/000823
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
