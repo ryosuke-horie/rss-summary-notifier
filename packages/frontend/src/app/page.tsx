@@ -10,47 +10,94 @@ interface HomeProps {
 		summary: string;
 		url: string;
 		ogp_image: string;
+		category: string[];
 	}[];
 }
 
-const getData = async (): Promise<HomeProps> => {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	const client: any = createDynamoDbClient();
+interface GroupedItems {
+	[category: string]: {
+		title: string;
+		summary: string;
+		url: string;
+		ogp_image: string;
+		category: string[];
+	}[];
+}
+
+const getData = async (): Promise<GroupedItems> => {
+	const client = createDynamoDbClient();
 	const params: ScanCommandInput = {
 		TableName: process.env.TABLE_NAME,
 	};
-	const { Items: allItems } = await client.send(new ScanCommand(params));
+	try {
+		const { Items: allItems } = await client.send(new ScanCommand(params));
 
-	// データをマッピングして expiredAt で並び替え
-	const items = allItems
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		.map((item: any) => ({
-			title: item.title,
-			summary: item.summary,
-			url: item.url,
-			ogp_image: item.ogp_image,
-			expiredAt: item.expiredAt,
-		}))
-		.sort(
-			(a: { expiredAt: number }, b: { expiredAt: number }) =>
-				b.expiredAt - a.expiredAt,
-		); // expiredAtで降順に並び替え
+		// DynamoDBのレスポンスをデバッグログに出力
+		console.log("Raw Items from DynamoDB:", allItems);
 
-	return { items };
+		const items = allItems
+			.map((item: any) => {
+				// ここでDynamoDBレスポンスから直接フィールドを取得
+				const title = item.title || "";
+				const summary = item.summary || "";
+				const url = item.url || "";
+				const ogp_image = item.ogp_image || "";
+				const expiredAt = item.expireAt || 0;  // expiredAt -> expireAt に修正
+				const category = item.category || [];
+
+				return {
+					title,
+					summary,
+					url,
+					ogp_image,
+					expiredAt,
+					category
+				};
+			})
+			.sort(
+				(a: { expiredAt: number }, b: { expiredAt: number }) =>
+					b.expiredAt - a.expiredAt,
+			);
+
+		// マッピング後のアイテムをデバッグログに出力
+		console.log("Mapped Items:", items);
+
+		const groupedItems: GroupedItems = items.reduce((acc, item) => {
+			item.category.forEach((category: string) => {
+				if (!acc[category]) {
+					acc[category] = [];
+				}
+				acc[category].push(item);
+			});
+			return acc;
+		}, {} as GroupedItems);
+
+		// グループ化後のアイテムをデバッグログに出力
+		console.log("Grouped Items:", groupedItems);
+		return groupedItems;
+	} catch (error) {
+		console.error("Error fetching data:", error);
+		return {}; // エラーハンドリング
+	}
 };
 
 export default async function Home() {
-	const { items } = await getData();
+	const groupedItems: GroupedItems = await getData();
+
 	return (
 		<div>
 			<Header />
 			<main className="flex min-h-screen flex-col items-center justify-between p-12">
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-					{items.map((item, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-						<Card key={index} item={item} />
-					))}
-				</div>
+				{Object.entries(groupedItems).map(([category, items]) => (
+					<div key={category}>
+						<h2 className="text-2xl font-bold mb-6">{category}</h2>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+							{items.map((item, index) => (
+								<Card key={index} item={item} />
+							))}
+						</div>
+					</div>
+				))}
 			</main>
 			<Footer />
 		</div>
