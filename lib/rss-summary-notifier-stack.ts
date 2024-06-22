@@ -152,7 +152,7 @@ export class RssSummaryNotifierStack extends Stack {
 			// 毎時50分に通知を行う
 			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 			const schedule: CronOptions = notifier["schedule"] || {
-				minute: "30",
+				minute: "40",
 				hour: "*",
 				day: "*",
 				month: "*",
