@@ -61,9 +61,6 @@ const getData = async (): Promise<GroupedItems> => {
 					b.expiredAt - a.expiredAt,
 			);
 
-		// マッピング後のアイテムをデバッグログに出力
-		console.log("Mapped Items:", items);
-
 		const groupedItems: GroupedItems = items.reduce((acc, item) => {
 			item.category.forEach((category: string) => {
 				if (!acc[category]) {
@@ -74,8 +71,6 @@ const getData = async (): Promise<GroupedItems> => {
 			return acc;
 		}, {} as GroupedItems);
 
-		// グループ化後のアイテムをデバッグログに出力
-		console.log("Grouped Items:", groupedItems);
 		return groupedItems;
 	} catch (error) {
 		console.error("Error fetching data:", error);
