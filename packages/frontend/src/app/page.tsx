@@ -32,8 +32,10 @@ const getData = async (): Promise<GroupedItems> => {
 	try {
 		const { Items: allItems } = await client.send(new ScanCommand(params));
 
-		// DynamoDBのレスポンスをデバッグログに出力
-		console.log("Raw Items from DynamoDB:", allItems);
+		// allItemsがundefinedの場合は空の配列を返す
+        if (!allItems) {
+            return {};
+        }
 
 		const items = allItems
 			.map((item: any) => {
@@ -42,7 +44,7 @@ const getData = async (): Promise<GroupedItems> => {
 				const summary = item.summary || "";
 				const url = item.url || "";
 				const ogp_image = item.ogp_image || "";
-				const expiredAt = item.expireAt || 0;  // expiredAt -> expireAt に修正
+				const expiredAt = item.expireAt || 0;
 				const category = item.category || [];
 
 				return {
