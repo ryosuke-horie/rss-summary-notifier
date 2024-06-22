@@ -33,11 +33,12 @@ const getData = async (): Promise<GroupedItems> => {
 		const { Items: allItems } = await client.send(new ScanCommand(params));
 
 		// allItemsがundefinedの場合は空の配列を返す
-        if (!allItems) {
-            return {};
-        }
+		if (!allItems) {
+			return {};
+		}
 
 		const items = allItems
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			.map((item: any) => {
 				// ここでDynamoDBレスポンスから直接フィールドを取得
 				const title = item.title || "";
@@ -53,7 +54,7 @@ const getData = async (): Promise<GroupedItems> => {
 					url,
 					ogp_image,
 					expiredAt,
-					category
+					category,
 				};
 			})
 			.sort(
@@ -62,6 +63,7 @@ const getData = async (): Promise<GroupedItems> => {
 			);
 
 		const groupedItems: GroupedItems = items.reduce((acc, item) => {
+			// biome-ignore lint/complexity/noForEach: <explanation>
 			item.category.forEach((category: string) => {
 				if (!acc[category]) {
 					acc[category] = [];
