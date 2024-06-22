@@ -39,10 +39,11 @@ DynamoDBにブログ情報を書き込む
 Args:
     link (str): ブログ投稿のURL
     title (str): ブログ投稿のタイトル
+    category (str): ブログ投稿のカテゴリー
     pubtime (str): ブログ投稿の公開日時
     notifier_name (str): 通知者の名前
 """
-def write_to_table(link, title, pubtime, notifier_name):
+def write_to_table(link, title, category, pubtime, notifier_name):
     try:
         # 現在の日時を取得
         current_time = datetime.datetime.now()
@@ -54,6 +55,7 @@ def write_to_table(link, title, pubtime, notifier_name):
             "url": link,
             "notifier_name": notifier_name,
             "title": title,
+            "category": category,
             "pubtime": pubtime,
             "expireAt": ttl_time  # TTL用のカラム
         }
