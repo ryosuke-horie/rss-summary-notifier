@@ -22,11 +22,24 @@ table = dynamo.Table(DDB_TABLE_NAME)
 
 # 技術カテゴリの定義
 TECH_CATEGORIES = {
-    'AWS': ['AWS', 'Amazon Web Services'],
-    'Nextjs': ['Nextjs', 'Next.js'],
-    'JavaScript': ['JavaScript', 'JS'],
-    'PHP': ['PHP'],
-    'TypeScript': ['TypeScript', 'TS']
+    'AWS': ['AWS', 'Amazon Web Services', 'EC2', 'S3', 'Lambda', 'DynamoDB'],
+    'Next.js': ['Next.js', 'Nextjs'],
+    'JavaScript': ['JavaScript', 'JS', 'ES6', 'ECMAScript'],
+    'PHP': ['PHP', 'Laravel', 'Symfony'],
+    'TypeScript': ['TypeScript', 'TS'],
+    'Python': ['Python', 'Django', 'Flask', 'PyTorch', 'TensorFlow'],
+    'DevOps': ['DevOps', 'CI/CD', 'Jenkins', 'Docker', 'Kubernetes', 'Terraform', 'Ansible'],
+    'Cloud': ['Cloud', 'Azure', 'Google Cloud Platform', 'GCP'],
+    'Machine Learning': ['Machine Learning', 'ML', 'Artificial Intelligence', 'AI', 'Deep Learning', 'Neural Networks'],
+    'Data Science': ['Data Science', 'Data Analysis', 'Pandas', 'NumPy', 'SciPy', 'R'],
+    'Frontend': ['Frontend', 'React', 'Vue.js', 'Angular', 'HTML', 'CSS', 'SASS', 'SCSS'],
+    'Backend': ['Backend', 'Node.js', 'Express', 'Ruby on Rails', 'Spring Boot', 'ASP.NET'],
+    'Database': ['Database', 'SQL', 'NoSQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite'],
+    'Security': ['Security', 'Cybersecurity', 'Encryption', 'SSL', 'TLS', 'OAuth', 'SAML'],
+    'Networking': ['Networking', 'TCP/IP', 'HTTP', 'DNS', 'BGP', 'Firewall', 'VPN'],
+    'Mobile': ['Mobile', 'Android', 'iOS', 'React Native', 'Flutter', 'Swift', 'Kotlin'],
+    'Blockchain': ['Blockchain', 'Cryptocurrency', 'Bitcoin', 'Ethereum', 'Smart Contract'],
+    'Testing': ['Testing', 'Unit Testing', 'Integration Testing', 'Selenium', 'JUnit', 'pytest']
 }
 
 # 記事の内容を基にカテゴリを判定する関数
