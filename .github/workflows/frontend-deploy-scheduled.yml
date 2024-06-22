@@ -1,12 +1,10 @@
 name: frontend-deploy-scheduled
 
-# 8時, 12時, 17時, 20時に実行
+# 日本時間の8時, 17時に実行
 on:
   schedule:
-    - cron: '0 23 * * *'
-    - cron: '0 3 * * *'
-    - cron: '0 8 * * *'
-    - cron: '0 11 * * *'
+    - cron: '0 23 * * *' # 8時
+    - cron: '0 8 * * *' # 17時
 
 env:
   AWS_REGION: "us-east-1"
