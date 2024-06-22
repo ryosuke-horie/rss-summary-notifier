@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 import re
 
+# モデルIDやリージョンなどの環境変数を取得
 MODEL_ID = os.environ["MODEL_ID"]
 MODEL_REGION = os.environ["MODEL_REGION"]
 NOTIFIERS = json.loads(os.environ["NOTIFIERS"])
@@ -19,6 +20,30 @@ DDB_TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(DDB_TABLE_NAME)
 
+# 技術カテゴリの定義
+TECH_CATEGORIES = {
+    'AWS': ['AWS', 'Amazon Web Services'],
+    'Nextjs': ['Nextjs', 'Next.js'],
+    'JavaScript': ['JavaScript', 'JS'],
+    'PHP': ['PHP'],
+    'TypeScript': ['TypeScript', 'TS']
+}
+
+# 記事の内容を基にカテゴリを判定する関数
+def categorize_article(content):
+    categories = []
+    for category, synonyms in TECH_CATEGORIES.items():
+        for synonym in synonyms:
+            # 正規表現を使ってカテゴリを判定
+            if re.search(r'\b' + re.escape(synonym) + r'\b', content, re.IGNORECASE):
+                categories.append(category)
+                break
+    # カテゴリが判定されなかった場合、「未分類」として扱う
+    if not categories:
+        categories.append('未分類')
+    return categories
+
+# ブログコンテンツを取得する関数
 def get_blog_content(url):
     try:
         if url.lower().startswith(("http://", "https://")):
@@ -27,23 +52,22 @@ def get_blog_content(url):
                 if response.getcode() == 200:
                     soup = BeautifulSoup(html, "html.parser")
                     
-                    # Try to find main content in <main> tag
+                    # メインコンテンツを取得
                     main = soup.find("main")
                     if main:
                         return main.get_text()
                     
-                    # If <main> tag not found, try to find <article> tag
+                    # メインタグがない場合、アーティクルタグを探す
                     article = soup.find("article")
                     if article:
                         return article.get_text()
                     
-                    # If <article> tag not found, try to find other possible tags
-                    # You can add more tags or specific classes/IDs as needed
+                    # それでも見つからない場合、他のタグを探す
                     div = soup.find("div", {"class": "content"})
                     if div:
                         return div.get_text()
 
-                    # As a fallback, return the text of the entire body
+                    # 最後の手段として、ボディ全体のテキストを返す
                     return soup.body.get_text()
         else:
             print(f"Error accessing {url}, status code {response.getcode()}")
@@ -52,6 +76,7 @@ def get_blog_content(url):
         print(f"Error accessing {url}: {e.reason}")
         return None
 
+# URLをデコードする関数
 def decode_url(url):
     try:
         decoded_url = urllib.parse.unquote(url)
@@ -60,17 +85,16 @@ def decode_url(url):
         print(f"Error decoding URL {url}: {e}")
         return url
 
+# OGP画像を取得する関数
 def get_ogp_image(url):
     try:
-        # URLがhttpまたはhttpsで始まるかチェック
         if url.lower().startswith(("http://", "https://")):
-            # URLにアクセスしてレスポンスを取得
             with urllib.request.urlopen(url) as response:
                 html = response.read()
                 if response.getcode() == 200:
                     soup = BeautifulSoup(html, "html.parser")
                     
-                    # いくつかのメタタグをチェックしてOGP画像を探す
+                    # OGP画像を取得するためのメタタグをチェック
                     meta_tags = [
                         ("meta", {"property": "og:image"}),         # Open Graph画像
                         ("meta", {"property": "twitter:image"}),     # Twitter画像
@@ -86,22 +110,19 @@ def get_ogp_image(url):
                             ogp_image_url = decode_url(ogp_image["content"])
                             return ogp_image_url
                     
-                    # OGP画像が見つからなかった場合のログ
                     print(f"No OGP image found for {url}")
                     return None
         else:
-            # URLが無効な場合のログ
             print(f"Invalid URL {url}")
             return None
     except urllib.error.URLError as e:
-        # URLにアクセスできなかった場合のエラーログ
         print(f"Error accessing {url}: {e.reason}")
         return None
     except Exception as e:
-        # その他の予期しないエラーの場合のログ
         print(f"Unexpected error while accessing {url}: {e}")
         return None
 
+# Bedrockクライアントを取得する関数
 def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str] = None, runtime: Optional[bool] = True):
     if region is None:
         target_region = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
@@ -130,6 +151,7 @@ def get_bedrock_client(assumed_role: Optional[str] = None, region: Optional[str]
 
     return bedrock_client
 
+# ブログを要約する関数
 def summarize_blog(blog_body, language, persona):
     boto3_bedrock = get_bedrock_client(assumed_role=os.environ.get("BEDROCK_ASSUME_ROLE", None), region=MODEL_REGION)
     beginning_word = "<output>"
@@ -196,7 +218,7 @@ Follow the instruction.
 
     return summary
 
-
+# RSSアイテムを処理する関数
 def process_items(item_list):
     for item in item_list:
         notifier = NOTIFIERS[item["rss_notifier_name"]]
@@ -208,6 +230,10 @@ def process_items(item_list):
         summary = summarize_blog(content, language=summarizer["outputLanguage"], persona=summarizer["persona"])
 
         item["summary"] = summary
+
+        # 技術カテゴリを判定
+        categories = categorize_article(content)
+        item["rss_category"] = categories
 
         # OGP画像を取得して保存
         ogp_image_url = get_ogp_image(item_url)
@@ -239,6 +265,7 @@ def update_item_in_dynamodb(item):
         # DynamoDB更新エラーのログ
         print(f"Error updating DynamoDB item: {e}")
 
+# DynamoDBの新規エントリを取得する関数
 def get_new_entries(blog_entries):
     res_list = []
     for entry in blog_entries:
@@ -255,6 +282,7 @@ def get_new_entries(blog_entries):
             print("skip REMOVE or UPDATE event")
     return res_list
 
+# Lambdaハンドラー
 def handler(event, context):
     try:
         new_data = get_new_entries(event["Records"])
