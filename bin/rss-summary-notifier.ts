@@ -25,9 +25,10 @@ new OidcStack(app, "OidcStack", { env });
 // コストアラート 3$をリミット、閾値を1に設定
 new BillingAlarmStack(app, "BillingAlarmStack", {
 	env,
-	slackWorkspaceId: "T0776951V0E",
-	slackChannelConfigurationName: "name",
-	slackChannelId: "C077FCEP92Q",
+	slackWorkspaceId: process.env.SLACK_WORKSPACE_ID || "",
+	slackChannelConfigurationName:
+		process.env.SLACK_CHANNEL_CONFIGURATION_NAME || "",
+	slackChannelId: process.env.SLACK_CHANNEL_ID || "",
 	budgetLimitAmountUsd: 3,
 	costAnomaryThresholdUsd: 1,
 });
