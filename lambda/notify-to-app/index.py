@@ -28,18 +28,19 @@ TECH_CATEGORIES = {
     'PHP': ['PHP', 'Laravel', 'Symfony'],
     'TypeScript': ['TypeScript', 'TS'],
     'Python': ['Python', 'Django', 'Flask', 'PyTorch', 'TensorFlow'],
-    'DevOps': ['DevOps', 'CI/CD', 'Jenkins', 'Docker', 'Kubernetes', 'Terraform', 'Ansible'],
+    'DevOps': ['DevOps', 'CI/CD', 'Jenkins', 'Docker', 'Kubernetes', 'Terraform', 'Ansible', 'ArgoCD', 'Argo CD'],
     'Cloud': ['Cloud', 'Azure', 'Google Cloud Platform', 'GCP'],
     'Machine Learning': ['Machine Learning', 'ML', 'Artificial Intelligence', 'AI', 'Deep Learning', 'Neural Networks'],
     'Data Science': ['Data Science', 'Data Analysis', 'Pandas', 'NumPy', 'SciPy', 'R'],
     'Frontend': ['Frontend', 'React', 'Vue.js', 'Angular', 'HTML', 'CSS', 'SASS', 'SCSS'],
-    'Backend': ['Backend', 'Node.js', 'Express', 'Ruby on Rails', 'Spring Boot', 'ASP.NET'],
-    'Database': ['Database', 'SQL', 'NoSQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite'],
+    'Backend': ['Backend', 'Node.js', 'Express', 'Ruby on Rails', 'Spring Boot', 'ASP.NET', 'GraphQL'],
+    'Database': ['Database', 'SQL', 'NoSQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'DynamoDB', 'RDS'],
     'Security': ['Security', 'Cybersecurity', 'Encryption', 'SSL', 'TLS', 'OAuth', 'SAML'],
     'Networking': ['Networking', 'TCP/IP', 'HTTP', 'DNS', 'BGP', 'Firewall', 'VPN'],
     'Mobile': ['Mobile', 'Android', 'iOS', 'React Native', 'Flutter', 'Swift', 'Kotlin'],
     'Blockchain': ['Blockchain', 'Cryptocurrency', 'Bitcoin', 'Ethereum', 'Smart Contract'],
-    'Testing': ['Testing', 'Unit Testing', 'Integration Testing', 'Selenium', 'JUnit', 'pytest']
+    'Testing': ['Testing', 'Unit Testing', 'Integration Testing', 'Selenium', 'JUnit', 'pytest'],
+    'Tools': ['GitHub', 'GitLab', 'JIRA', 'Confluence', 'Slack', 'Trello', 'Notion', 'Asana'],
 }
 
 # 記事の内容を基にカテゴリを判定する関数
