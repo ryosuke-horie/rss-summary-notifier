@@ -110,7 +110,7 @@ def get_ogp_image(url):
                     
                     # OGP画像を取得するためのメタタグをチェック
                     meta_tags = [
-                        ("meta", {"property": "og:image"}),         # Open Graph画像
+                        ("meta", {"property": "og:image"}),          # Open Graph画像
                         ("meta", {"property": "twitter:image"}),     # Twitter画像
                         ("meta", {"name": "og:image"}),              # 別のOpen Graph画像
                         ("meta", {"name": "twitter:image"}),         # 別のTwitter画像
